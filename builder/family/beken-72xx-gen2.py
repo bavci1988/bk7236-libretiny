@@ -667,8 +667,10 @@ queue.AppendPublic(
 
 # Misc options
 env.Replace(
-    SIZEPROGREGEXP=r"^(?:\.vectors|\.text|\.rodata|\.data|\.ARM\.exidx)\s+([0-9]+).*",
-    SIZEDATAREGEXP=r"^(?:\.vectors|\.data|\.bss)\s+([0-9]+).*",
+    # sections stored in flash (.itcm/.dtcm/.iram/.data are copied to RAM at startup)
+    SIZEPROGREGEXP=r"^(?:\.vectors|\.text|\.ARM\.exidx|\.init_array|\.copy\.table|\.zero\.table|\.itcm|\.dtcm|\.iram|\.data)\s+([0-9]+).*",
+    # .ramcode reserves the RAM used by .iram
+    SIZEDATAREGEXP=r"^(?:\.ramcode|\.data|\.uninitialized|\.bss)\s+([0-9]+).*",
     SIZECHECKCMD="$SIZETOOL -A -d $SOURCES",
     SIZEPRINTCMD="$SIZETOOL -B -d $SOURCES",
 )
