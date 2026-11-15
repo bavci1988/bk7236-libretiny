@@ -1,0 +1,48 @@
+#include <libretiny.h>
+#include <sdk_private.h>
+
+void lt_get_device_mac(uint8_t *mac) {
+	bk_get_mac(mac, MAC_TYPE_BASE);
+}
+
+void lt_reboot() {
+	bk_reboot();
+}
+
+lt_reboot_reason_t lt_get_reboot_reason() {
+	switch (bk_misc_get_reset_reason()) {
+		case RESET_SOURCE_POWERON:
+			return REBOOT_REASON_POWER;
+		case RESET_SOURCE_REBOOT:
+		case RESET_SOURCE_OTA_REBOOT:
+			return REBOOT_REASON_SOFTWARE;
+		case RESET_SOURCE_WATCHDOG:
+		case RESET_SOURCE_NMI_WDT:
+			return REBOOT_REASON_WATCHDOG;
+		case RESET_SOURCE_CRASH_ILLEGAL_JUMP:
+		case RESET_SOURCE_CRASH_UNDEFINED:
+		case RESET_SOURCE_CRASH_PREFETCH_ABORT:
+		case RESET_SOURCE_CRASH_DATA_ABORT:
+		case RESET_SOURCE_CRASH_UNUSED:
+		case RESET_SOURCE_CRASH_ILLEGAL_INSTRUCTION:
+		case RESET_SOURCE_CRASH_MISALIGNED:
+		case RESET_SOURCE_CRASH_ASSERT:
+		case RESET_SOURCE_HARD_FAULT:
+		case RESET_SOURCE_MPU_FAULT:
+		case RESET_SOURCE_BUS_FAULT:
+		case RESET_SOURCE_USAGE_FAULT:
+		case RESET_SOURCE_SECURE_FAULT:
+		case RESET_SOURCE_DEBUG_MONITOR_FAULT:
+		case RESET_SOURCE_DEFAULT_EXCEPTION:
+			return REBOOT_REASON_CRASH;
+		case RESET_SOURCE_DEEPPS_GPIO:
+		case RESET_SOURCE_DEEPPS_TOUCH:
+			return REBOOT_REASON_SLEEP_GPIO;
+		case RESET_SOURCE_DEEPPS_RTC:
+			return REBOOT_REASON_SLEEP_RTC;
+		case RESET_SOURCE_DEEPPS_USB:
+			return REBOOT_REASON_SLEEP_USB;
+		default:
+			return REBOOT_REASON_UNKNOWN;
+	}
+}
