@@ -1,0 +1,52 @@
+// Copyright 2022-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+//This is a generated file, don't modify it!
+
+#pragma once
+
+
+#include "security.h"
+#define KB(size)                                      ((size) << 10)
+#define MB(size)                                      ((size) << 20)
+
+#define CONFIG_TFM_S_JUMP_TO_TFM_NS                   0
+#define CONFIG_TFM_S_JUMP_TO_CPU0_APP                 1
+#define CPU_VECTOR_ALIGN_SZ                           512
+#define CONFIG_PRIMARY_BOOTLOADER_PHY_PARTITION_OFFSET 0x0
+#define CONFIG_PRIMARY_BOOTLOADER_PHY_PARTITION_SIZE  0x11000
+#define CONFIG_PRIMARY_BOOTLOADER_PHY_CODE_START      0x0
+#define CONFIG_PRIMARY_BOOTLOADER_VIRTUAL_PARTITION_SIZE 0x10000
+#define CONFIG_PRIMARY_BOOTLOADER_VIRTUAL_CODE_START  0x0
+#define CONFIG_PRIMARY_BOOTLOADER_VIRTUAL_CODE_SIZE   0x10000
+
+#define CONFIG_PRIMARY_CPU0_APP_PHY_PARTITION_OFFSET  0x11000
+#define CONFIG_PRIMARY_CPU0_APP_PHY_PARTITION_SIZE    0x240000
+#define CONFIG_PRIMARY_CPU0_APP_PHY_CODE_START        0x11000
+#define CONFIG_PRIMARY_CPU0_APP_VIRTUAL_PARTITION_SIZE 0x21e1e0
+#define CONFIG_PRIMARY_CPU0_APP_VIRTUAL_CODE_START    0x10000
+#define CONFIG_PRIMARY_CPU0_APP_VIRTUAL_CODE_SIZE     0x21e1e0
+
+#define CONFIG_SYS_RF_PHY_PARTITION_OFFSET            0x3fe000
+#define CONFIG_SYS_RF_PHY_PARTITION_SIZE              0x1000
+
+#define CONFIG_SYS_NET_PHY_PARTITION_OFFSET           0x3ff000
+#define CONFIG_SYS_NET_PHY_PARTITION_SIZE             0x1000
+
+#define PARTITION_MAP { \
+    {"primary_bootloader", CONFIG_PRIMARY_BOOTLOADER_PHY_PARTITION_OFFSET, CONFIG_PRIMARY_BOOTLOADER_PHY_PARTITION_SIZE}, \
+    {"primary_cpu0_app", CONFIG_PRIMARY_CPU0_APP_PHY_PARTITION_OFFSET, CONFIG_PRIMARY_CPU0_APP_PHY_PARTITION_SIZE}, \
+    {"sys_rf", CONFIG_SYS_RF_PHY_PARTITION_OFFSET, CONFIG_SYS_RF_PHY_PARTITION_SIZE}, \
+    {"sys_net", CONFIG_SYS_NET_PHY_PARTITION_OFFSET, CONFIG_SYS_NET_PHY_PARTITION_SIZE}, \
+}
