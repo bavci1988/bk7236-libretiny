@@ -1,9 +1,14 @@
 #include <libretiny.h>
 #include <sdk_private.h>
 
+#include <soc/soc.h>
+
+// SYS register 0x1: chip ID in the upper half (0x7236 on BK7236), version in the lower half
+#define SYS_VERSION_ID (SOC_SYS_REG_BASE + (0x1 << 2))
+
 lt_cpu_model_t lt_cpu_get_model() {
-	// TODO: the chip ID register value of BK7236 is not verified yet
-	return CPU_MODEL_ENUM(FAMILY, 0x00);
+	uint8_t chipId = (REG_READ(SYS_VERSION_ID) >> 16) & 0xFF;
+	return CPU_MODEL_ENUM(FAMILY, chipId);
 }
 
 const char *lt_cpu_get_core_type() {
