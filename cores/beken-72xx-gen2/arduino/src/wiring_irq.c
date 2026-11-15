@@ -1,0 +1,77 @@
+#include <ArduinoPrivate.h>
+
+#include <driver/gpio.h>
+
+static void irqHandler(gpio_id_t gpio) {
+	PinInfo *pin = pinByGpio(gpio);
+	if (pin == NULL)
+		return;
+	PinData *data = pinData(pin);
+	if (!data->irqHandler)
+		return;
+	if (!data->irqParam)
+		((voidFuncPtr)data->irqHandler)();
+	else
+		((voidFuncPtrParam)data->irqHandler)(data->irqParam);
+	if (data->irqChange) {
+		// the hardware has no "both edges" mode - flip the edge
+		if (data->irqMode == RISING) {
+			data->irqMode = FALLING;
+			bk_gpio_set_interrupt_type(gpio, GPIO_INT_TYPE_FALLING_EDGE);
+		} else {
+			data->irqMode = RISING;
+			bk_gpio_set_interrupt_type(gpio, GPIO_INT_TYPE_RISING_EDGE);
+		}
+	}
+}
+
+void attachInterruptParam(pin_size_t interruptNumber, voidFuncPtrParam callback, PinStatus mode, void *param) {
+	pinCheckGetData(interruptNumber, PIN_IRQ, );
+
+	data->irqHandler = callback;
+	data->irqParam	 = param;
+
+	if (pinEnabled(pin, PIN_IRQ) && data->irqMode == mode)
+		return;
+
+	gpio_int_type_t type;
+	bool change = false;
+	switch (mode) {
+		case LOW:
+			type = GPIO_INT_TYPE_LOW_LEVEL;
+			break;
+		case HIGH:
+			type = GPIO_INT_TYPE_HIGH_LEVEL;
+			break;
+		case FALLING:
+			type = GPIO_INT_TYPE_FALLING_EDGE;
+			break;
+		case RISING:
+			type = GPIO_INT_TYPE_RISING_EDGE;
+			break;
+		case CHANGE:
+			if (bk_gpio_get_input(pin->gpio)) {
+				type = GPIO_INT_TYPE_FALLING_EDGE;
+				mode = FALLING;
+			} else {
+				type = GPIO_INT_TYPE_RISING_EDGE;
+				mode = RISING;
+			}
+			change = true;
+			break;
+		default:
+			return;
+	}
+	pinEnable(pin, PIN_IRQ);
+	data->irqMode	= mode;
+	data->irqChange = change;
+
+	bk_gpio_disable_interrupt(pin->gpio);
+	bk_gpio_register_isr(pin->gpio, irqHandler);
+	bk_gpio_set_interrupt_type(pin->gpio, type);
+	bk_gpio_enable_interrupt(pin->gpio);
+}
+
+void detachInterrupt(pin_size_t interruptNumber) {
+	pinModeRemove(interruptNumber, PIN_IRQ);
+}
