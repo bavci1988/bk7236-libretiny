@@ -2,7 +2,8 @@
 	"build": {
 		"family": "BK7236",
 		"f_cpu": "120000000L",
-		"prefix": "arm-none-eabi-"
+		"prefix": "arm-none-eabi-",
+		"ldscript": "bk7236_bsp.ld"
 	},
 	"flash": {
 		"bootloader": "0x000000+0x11000",
@@ -18,7 +19,7 @@
 		"ble"
 	],
 	"upload": {
-		"maximum_size": 2228224,
+		"maximum_size": 2220512,
 		"maximum_ram_size": 655360,
 		"flash_size": 4194304,
 		"require_upload_port": true,
