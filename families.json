@@ -49,7 +49,8 @@
 	"beken-72xx-gen2": {
 		"parent": "beken-72xx",
 		"code": "bk72xxgen2",
-		"description": "Beken 72xx (RISC-V & ARM)"
+		"description": "Beken 72xx (RISC-V & ARM)",
+		"package": "framework-beken-armino"
 	},
 	"beken-7231": {
 		"parent": "beken-72xx-gen1",
@@ -90,6 +91,13 @@
 		"description": "Beken 7251/7252",
 		"id": "0x6A82CC42",
 		"short_name": "BK7251"
+	},
+	"beken-7236": {
+		"parent": "beken-72xx-gen2",
+		"code": "bk7236",
+		"description": "Beken 7236",
+		"id": "0x7279633D",
+		"short_name": "BK7236"
 	},
 	"boufallo-bl678": {
 		"parent": null,
