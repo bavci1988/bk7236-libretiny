@@ -1030,6 +1030,13 @@ env.GenerateLinkerScript(board, board.get("build.ldscript"))
 # Build all libraries
 queue.BuildLibraries()
 
+# Rename Arduino's delay() to delayMilliseconds() - ARMINO has its own delay()
+env.Append(
+    CPPDEFINES=[
+        ("'delay(ms)'", "'delayMilliseconds(ms)'"),
+    ],
+)
+
 # Main firmware outputs and actions
 image_app_crc = "${BUILD_DIR}/image_${MCULC}_app.${FLASH_APP_OFFSET}.crc"
 env.Replace(
