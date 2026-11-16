@@ -13,6 +13,9 @@ void _init(void) {}
 
 void _fini(void) {}
 
+// normally provided by crtbegin.o, used by __cxa_atexit() for C++ static objects
+void *__dso_handle = &__dso_handle;
+
 static void lt_armino_entry(void *arg) {
 	lt_main();
 }
