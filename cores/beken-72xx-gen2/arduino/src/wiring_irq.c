@@ -2,6 +2,8 @@
 
 #include <driver/gpio.h>
 
+extern bk_err_t gpio_dev_unmap(gpio_id_t gpio_id);
+
 static void irqHandler(gpio_id_t gpio) {
 	PinInfo *pin = pinByGpio(gpio);
 	if (pin == NULL)
@@ -61,6 +63,16 @@ void attachInterruptParam(pin_size_t interruptNumber, voidFuncPtrParam callback,
 			break;
 		default:
 			return;
+	}
+	if (!(pin->enabled & (PIN_GPIO | PIN_IRQ))) {
+		// configure as input, releasing the default peripheral function
+		gpio_config_t cfg = {
+			.io_mode   = GPIO_INPUT_ENABLE,
+			.pull_mode = GPIO_PULL_DISABLE,
+			.func_mode = GPIO_SECOND_FUNC_DISABLE,
+		};
+		gpio_dev_unmap(pin->gpio);
+		bk_gpio_set_config(pin->gpio, &cfg);
 	}
 	pinEnable(pin, PIN_IRQ);
 	data->irqMode	= mode;

@@ -2,6 +2,9 @@
 
 #include <driver/gpio.h>
 
+// release the pin from its default peripheral function (gpio_map.h)
+extern bk_err_t gpio_dev_unmap(gpio_id_t gpio_id);
+
 void pinMode(pin_size_t pinNumber, PinMode pinMode) {
 	pinCheckGetData(pinNumber, PIN_GPIO, );
 
@@ -32,6 +35,8 @@ void pinMode(pin_size_t pinNumber, PinMode pinMode) {
 		default:
 			return;
 	}
+	if (!(pin->enabled & (PIN_GPIO | PIN_IRQ)))
+		gpio_dev_unmap(pin->gpio);
 	if (bk_gpio_set_config(pin->gpio, &cfg) != BK_OK)
 		return;
 	pinEnable(pin, PIN_GPIO);
