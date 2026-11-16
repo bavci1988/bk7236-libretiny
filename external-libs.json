@@ -146,6 +146,27 @@
 			"+<port>"
 		]
 	},
+	"lwip-armino": {
+		"package": "library-lwip",
+		"sources": [
+			"+<src/api/*.c>",
+			"+<src/core/*.c>",
+			"+<src/core/ipv4/*.c>",
+			"+<src/core/ipv6/*.c>",
+			"+<src/netif/ethernet.c>",
+			"+<src/netif/etharp.c>",
+			"+<src/apps/mdns/*.c>",
+			"+<src/apps/sntp/sntp.c>",
+			"+<port/*.c>",
+			"+<port/dhcpd/*.c>"
+		],
+		"includes": [
+			"+<src/include>",
+			"+<src/include/ipv4>",
+			"+<src/include/lwip>",
+			"+<port>"
+		]
+	},
 	"lwip-ambz2": {
 		"package": "library-lwip",
 		"sources": [

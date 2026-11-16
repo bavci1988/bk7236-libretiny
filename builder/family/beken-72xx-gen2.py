@@ -56,10 +56,9 @@ queue.AppendPublic(
         "--specs=nano.specs",
         # startup code is provided by CMSIS (startup_bk7236.c)
         "-nostartfiles",
-        # resolve these from ARMINO (bk_init, lwIP) before newlib pulls in its own copies
+        # resolve these from ARMINO (bk_init) before newlib pulls in its own copies
         "-Wl,-u,__stack_chk_guard",
         "-Wl,-u,__stack_chk_fail",
-        "-Wl,-u,errno",
         # stdio wrappers (base/port/printf.c)
         "-Wl,-wrap,bk_printf",
     ],
@@ -120,9 +119,6 @@ queue.AddLibrary(
         "+<$SDK_DIR/components/wpa_supplicant-2.10/src>",
         "+<$SDK_DIR/components/wpa_supplicant-2.10/wpa_supplicant>",
         "+<$SDK_DIR/components/wpa_supplicant-2.10/bk_patch>",
-        "+<$SDK_DIR/components/lwip_intf_v2_1/lwip-2.1.2/src/include/netif>",
-        "+<$SDK_DIR/components/lwip_intf_v2_1/lwip-2.1.2/src/include/lwip>",
-        "+<$SDK_DIR/components/lwip_intf_v2_1/lwip-2.1.2/src/include/lwip/priv>",
         "+<$SDK_DIR/components/utf8>",
         "+<$SDK_DIR/components/temp_detect>",
         "+<$SDK_DIR/middleware/driver>",
@@ -175,9 +171,6 @@ queue.AddLibrary(
         "+<$SDK_DIR/components/cmsis/CMSIS_5/Device/Beken/bk7236xx/Include/Template>",
         "+<$SDK_DIR/components/cmsis/CMSIS_5/Device/Beken/armstar>",
         "+<$SDK_DIR/components/bk_ps/include>",
-        "+<$SDK_DIR/components/lwip_intf_v2_1/lwip-2.1.2/src>",
-        "+<$SDK_DIR/components/lwip_intf_v2_1/lwip-2.1.2/port>",
-        "+<$SDK_DIR/components/lwip_intf_v2_1/lwip-2.1.2/src/include>",
         "+<$SDK_DIR/components/coredump/cm_backtrace>",
         "+<$SDK_DIR/components/coredump/cm_backtrace/Languages/en-US>",
         "+<$SDK_DIR/components/bk_phy/include>",
@@ -916,66 +909,6 @@ queue.AddLibrary(
     ],
 )
 
-# Sources - components/lwip_intf_v2_1
-queue.AddLibrary(
-    name="armino_lwip_intf_v2_1",
-    base_dir=join("$SDK_DIR", "components/lwip_intf_v2_1"),
-    srcs=[
-        "+<dhcpd/dhcp-server-main.c>",
-        "+<dhcpd/dhcp-server.c>",
-        "+<lwip-2.1.2/port/net.c>",
-        "+<lwip-2.1.2/port/sys_arch.c>",
-        "+<lwip-2.1.2/port/wlanif.c>",
-        "+<lwip-2.1.2/src/api/api_lib.c>",
-        "+<lwip-2.1.2/src/api/api_msg.c>",
-        "+<lwip-2.1.2/src/api/err.c>",
-        "+<lwip-2.1.2/src/api/netbuf.c>",
-        "+<lwip-2.1.2/src/api/netdb.c>",
-        "+<lwip-2.1.2/src/api/netifapi.c>",
-        "+<lwip-2.1.2/src/api/sockets.c>",
-        "+<lwip-2.1.2/src/api/tcpip.c>",
-        "+<lwip-2.1.2/src/apps/mdns/mdns.c>",
-        "+<lwip-2.1.2/src/apps/ping/ping.c>",
-        "+<lwip-2.1.2/src/core/debug.c>",
-        "+<lwip-2.1.2/src/core/def.c>",
-        "+<lwip-2.1.2/src/core/dns.c>",
-        "+<lwip-2.1.2/src/core/inet_chksum.c>",
-        "+<lwip-2.1.2/src/core/init.c>",
-        "+<lwip-2.1.2/src/core/ip.c>",
-        "+<lwip-2.1.2/src/core/ipv4/autoip.c>",
-        "+<lwip-2.1.2/src/core/ipv4/dhcp.c>",
-        "+<lwip-2.1.2/src/core/ipv4/etharp.c>",
-        "+<lwip-2.1.2/src/core/ipv4/icmp.c>",
-        "+<lwip-2.1.2/src/core/ipv4/igmp.c>",
-        "+<lwip-2.1.2/src/core/ipv4/ip4.c>",
-        "+<lwip-2.1.2/src/core/ipv4/ip4_addr.c>",
-        "+<lwip-2.1.2/src/core/ipv4/ip4_frag.c>",
-        "+<lwip-2.1.2/src/core/ipv4/ip4_napt.c>",
-        "+<lwip-2.1.2/src/core/ipv6/dhcp6.c>",
-        "+<lwip-2.1.2/src/core/ipv6/ethip6.c>",
-        "+<lwip-2.1.2/src/core/ipv6/icmp6.c>",
-        "+<lwip-2.1.2/src/core/ipv6/inet6.c>",
-        "+<lwip-2.1.2/src/core/ipv6/ip6.c>",
-        "+<lwip-2.1.2/src/core/ipv6/ip6_addr.c>",
-        "+<lwip-2.1.2/src/core/ipv6/ip6_frag.c>",
-        "+<lwip-2.1.2/src/core/ipv6/mld6.c>",
-        "+<lwip-2.1.2/src/core/ipv6/nd6.c>",
-        "+<lwip-2.1.2/src/core/mem.c>",
-        "+<lwip-2.1.2/src/core/memp.c>",
-        "+<lwip-2.1.2/src/core/netif.c>",
-        "+<lwip-2.1.2/src/core/pbuf.c>",
-        "+<lwip-2.1.2/src/core/raw.c>",
-        "+<lwip-2.1.2/src/core/stats.c>",
-        "+<lwip-2.1.2/src/core/sys.c>",
-        "+<lwip-2.1.2/src/core/tcp.c>",
-        "+<lwip-2.1.2/src/core/tcp_in.c>",
-        "+<lwip-2.1.2/src/core/tcp_out.c>",
-        "+<lwip-2.1.2/src/core/timeouts.c>",
-        "+<lwip-2.1.2/src/core/udp.c>",
-        "+<lwip-2.1.2/src/netif/ethernet.c>",
-    ],
-)
-
 # Sources - components/bk_netif
 queue.AddLibrary(
     name="armino_bk_netif",
@@ -984,6 +917,9 @@ queue.AddLibrary(
         "+<bk_netif.c>",
     ],
 )
+
+# Sources - lwIP
+queue.AddExternalLibrary("lwip", port="armino")
 
 # Libs & linker config
 queue.AppendPublic(
