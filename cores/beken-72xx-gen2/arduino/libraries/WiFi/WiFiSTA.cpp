@@ -65,7 +65,9 @@ bool WiFiClass::reconnect(const uint8_t *bssid) {
 }
 
 bool WiFiClass::disconnect(bool wifiOff) {
-	if (DATA->staEnabled)
+	ltw_ap_info_t link;
+	// only disconnect an existing connection, a new connection is started by ltw_sta_connect()
+	if (DATA->staEnabled && ltw_sta_get_link(&link))
 		ltw_sta_disconnect();
 	DATA->staStatus = WL_DISCONNECTED;
 	if (wifiOff)
