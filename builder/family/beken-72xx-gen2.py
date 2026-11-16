@@ -896,13 +896,14 @@ queue.AddLibrary(
 queue.AddLibrary(
     name="armino_mbedtls",
     base_dir=join("$SDK_DIR", "components/mbedtls"),
+    # mbedtls-port/src/tls_net.c is left out: port/net_sockets.c provides the same
+    # mbedtls_net_*() functions (and mbedtls_net_poll())
     srcs=[
         "+<mbedtls-port/src/timing_alt.c>",
         "+<mbedtls-port/src/tls_certificate.c>",
         "+<mbedtls-port/src/tls_client.c>",
         "+<mbedtls-port/src/tls_hardware.c>",
         "+<mbedtls-port/src/tls_mem.c>",
-        "+<mbedtls-port/src/tls_net.c>",
         "+<mbedtls/library/aes.c>",
         "+<mbedtls/library/aesni.c>",
         "+<mbedtls/library/arc4.c>",
