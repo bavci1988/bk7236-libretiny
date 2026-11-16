@@ -22,13 +22,7 @@ static void callback(uart_id_t id, void *param) {
 }
 
 void SerialClass::beginPrivate(unsigned long baudrate, uint16_t config) {
-	if (!this->data)
-		return;
-
-	if (this->rx != PIN_INVALID) {
-		bk_uart_take_rx_isr(UART_ID(this->port), callback, this->rxBuf);
-		bk_uart_enable_rx_interrupt(UART_ID(this->port));
-	}
+	// RX is set up in configure(), as bk_uart_init() resets the interrupt enables
 }
 
 void SerialClass::configure(unsigned long baudrate, uint16_t config) {
@@ -51,6 +45,13 @@ void SerialClass::configure(unsigned long baudrate, uint16_t config) {
 	};
 	bk_uart_init(UART_ID(this->port), &cfg);
 
+	if (this->rx != PIN_INVALID) {
+		// read the RX FIFO in our own ISR instead of the SDK's software FIFO
+		bk_uart_disable_sw_fifo(UART_ID(this->port));
+		bk_uart_register_rx_isr(UART_ID(this->port), callback, this->rxBuf);
+		bk_uart_enable_rx_interrupt(UART_ID(this->port));
+	}
+
 	this->baudrate = baudrate;
 	this->config   = config;
 }
@@ -60,7 +61,8 @@ void SerialClass::endPrivate() {
 		return;
 
 	bk_uart_disable_rx_interrupt(UART_ID(this->port));
-	bk_uart_recover_rx_isr(UART_ID(this->port));
+	bk_uart_register_rx_isr(UART_ID(this->port), NULL, NULL);
+	bk_uart_enable_sw_fifo(UART_ID(this->port));
 }
 
 void SerialClass::flush() {
