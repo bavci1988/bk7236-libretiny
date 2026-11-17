@@ -44,7 +44,7 @@ bool WiFiClass::softAPdisconnect(bool wifiOff) {
 }
 
 uint8_t WiFiClass::softAPgetStationNum() {
-	return 0;
+	return ltw_ap_get_sta_num();
 }
 
 IPAddress WiFiClass::softAPIP() {

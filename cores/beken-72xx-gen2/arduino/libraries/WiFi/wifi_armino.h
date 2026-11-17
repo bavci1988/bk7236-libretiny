@@ -49,6 +49,7 @@ bool ltw_sta_set_ip4(const ltw_ip4_t *ip); // NULL: use DHCP
 
 bool ltw_ap_start(const char *ssid, const char *pass, uint8_t channel, bool hidden, uint8_t max_conn);
 bool ltw_ap_stop(void);
+uint8_t ltw_ap_get_sta_num(void);
 bool ltw_ap_set_ip4(const ltw_ip4_t *ip);
 
 bool ltw_get_ip4(bool ap, ltw_ip4_t *ip);

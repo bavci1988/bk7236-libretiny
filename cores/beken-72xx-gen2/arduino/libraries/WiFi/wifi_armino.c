@@ -10,6 +10,7 @@
 #include <components/netif.h>
 #include <components/system.h>
 #include <modules/wifi.h>
+#include <os/mem.h>
 
 extern void *net_get_sta_handle(void);
 extern void *net_get_uap_handle(void);
@@ -223,6 +224,15 @@ bool ltw_ap_start(const char *ssid, const char *pass, uint8_t channel, bool hidd
 
 bool ltw_ap_stop(void) {
 	return bk_wifi_ap_stop() == BK_OK;
+}
+
+uint8_t ltw_ap_get_sta_num(void) {
+	wlan_ap_stas_t stas = {0};
+	if (bk_wifi_ap_get_sta_list(&stas) != BK_OK)
+		stas.num = 0;
+	if (stas.sta)
+		os_free(stas.sta);
+	return stas.num;
 }
 
 bool ltw_get_ip4(bool ap, ltw_ip4_t *ip) {
