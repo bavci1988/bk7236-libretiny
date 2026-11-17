@@ -44,6 +44,9 @@ bool ArduinoSPI::configure(const SPISettings &settings) {
 #if CONFIG_SPI_BYTE_INTERVAL
 	config.byte_interval = 0;
 #endif
+	// CONFIG_SPI is not set, so ARMINO's driver_init() skips this (no-op if already done)
+	if (bk_spi_driver_init() != BK_OK)
+		return false;
 	if (this->initialized)
 		bk_spi_deinit(SPI_ID);
 	this->initialized = false;
