@@ -17,8 +17,9 @@
 extern void bk_timer_delay_us(uint32_t us);
 extern bk_err_t gpio_dev_unmap(gpio_id_t gpio_id);
 
+static uint64_t timer0Total	   = 0;
 static uint32_t timer0Last	   = 0;
-static uint64_t timer0High	   = 0;
+static TickType_t tickLast	   = 0;
 static TimerHandle_t timer0Ext = NULL;
 
 // latch and read the TIMER0 counter, like ARMINO's timer_hal_get_timer0_cnt()
@@ -34,12 +35,20 @@ static inline uint32_t timer0Read() {
 
 static uint64_t timer0Ticks() {
 	// usable from ISRs as well
-	uint32_t irq = rtos_disable_int();
-	uint32_t now = timer0Read();
-	if (now < timer0Last)
-		timer0High += 1ULL << 32;
+	uint32_t irq	= rtos_disable_int();
+	uint32_t now	= timer0Read();
+	TickType_t tick = xPortIsInsideInterrupt() ? xTaskGetTickCountFromISR() : xTaskGetTickCount();
+	uint32_t delta	= now - timer0Last;
+	// TIMER0 stops while the chip is in low-voltage sleep (26 MHz crystal halted); the FreeRTOS tick count
+	// is corrected from the AON RTC after sleeping, so use it when it shows more elapsed time than TIMER0
+	uint64_t tickUs = (uint64_t)(TickType_t)(tick - tickLast) * portTICK_PERIOD_MS * 1000;
+	if (tickUs > (uint64_t)delta / TIMER0_TICKS_PER_US + 2 * portTICK_PERIOD_MS * 1000)
+		timer0Total += tickUs * TIMER0_TICKS_PER_US;
+	else
+		timer0Total += delta;
 	timer0Last	   = now;
-	uint64_t ticks = timer0High | now;
+	tickLast	   = tick;
+	uint64_t ticks = timer0Total;
 	rtos_enable_int(irq);
 	return ticks;
 }
