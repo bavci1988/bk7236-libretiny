@@ -4,6 +4,7 @@
 #include <driver/pwm.h>
 #include <driver/timer.h>
 #include <os/os.h>
+#include <soc/soc.h>
 
 #include <FreeRTOS.h>
 #include <timers.h>
@@ -20,10 +21,21 @@ static uint32_t timer0Last	   = 0;
 static uint64_t timer0High	   = 0;
 static TimerHandle_t timer0Ext = NULL;
 
+// latch and read the TIMER0 counter, like ARMINO's timer_hal_get_timer0_cnt()
+// (bk_timer_get_cnt() adds PM checks to every call)
+static inline uint32_t timer0Read() {
+	volatile uint32_t *readCtl	 = (volatile uint32_t *)(SOC_TIMER0_REG_BASE + (8 << 2));
+	volatile uint32_t *readValue = (volatile uint32_t *)(SOC_TIMER0_REG_BASE + (9 << 2));
+	// bits 2-3: timer index (0), bit 0: start read
+	*readCtl = (*readCtl & ~(0b11 << 2)) | 1;
+	while (*readCtl & 1) {}
+	return *readValue;
+}
+
 static uint64_t timer0Ticks() {
 	// usable from ISRs as well
 	uint32_t irq = rtos_disable_int();
-	uint32_t now = bk_timer_get_cnt(TIMER_ID0);
+	uint32_t now = timer0Read();
 	if (now < timer0Last)
 		timer0High += 1ULL << 32;
 	timer0Last	   = now;
