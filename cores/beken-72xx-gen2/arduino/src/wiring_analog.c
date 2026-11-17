@@ -99,13 +99,15 @@ uint16_t analogReadVoltage(pin_size_t pinNumber) {
 	if (ret != BK_OK)
 		return 0;
 
-	// calibrated value in volts
+	// calibrated value in volts (ARMINO's 1 V / 2 V calibration points)
 	float voltage = bk_adc_data_calculate(value, chan);
 	return (uint16_t)(voltage * 1000.0f + 0.5f);
 }
 
 uint16_t analogReadMaxVoltage(pin_size_t pinNumber) {
-	return 2400;
+	// documented as 0-2.4 V, but the calibrated reading of a 3.3 V input is correct (3322 mV);
+	// GPIO inputs can't exceed VDDIO anyway
+	return 3300;
 }
 
 void analogWrite(pin_size_t pinNumber, int value) {
