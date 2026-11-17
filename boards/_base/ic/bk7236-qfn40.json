@@ -1,6 +1,11 @@
 {
 	"pcb": {
 		"ic": {
+			"10": {
+				"C_NAME": "GPIO48",
+				"GPIO": "P48",
+				"IRQ": null
+			},
 			"11": {
 				"C_NAME": "GPIO24",
 				"GPIO": "P24",
@@ -14,6 +19,12 @@
 				"IRQ": null,
 				"PWM": 5,
 				"ADC": 1
+			},
+			"13": {
+				"ADC": 4,
+				"C_NAME": "GPIO28",
+				"GPIO": "P28",
+				"IRQ": null
 			},
 			"14": {
 				"C_NAME": "GPIO32",
@@ -112,6 +123,12 @@
 				"GPIO": "P18",
 				"IRQ": null,
 				"PWM": 0
+			},
+			"38": {
+				"C_NAME": "GPIO19",
+				"GPIO": "P19",
+				"IRQ": null,
+				"PWM": 1
 			},
 			"39": {
 				"C_NAME": "GPIO41",

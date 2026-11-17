@@ -6,11 +6,11 @@
 
 // Pins
 // ----
-#define PINS_COUNT         18 // Total GPIO count
-#define NUM_DIGITAL_PINS   18 // Digital inputs/outputs
-#define NUM_ANALOG_INPUTS  6  // ADC inputs
-#define NUM_ANALOG_OUTPUTS 6  // PWM & DAC outputs
-#define PINS_GPIO_MAX      41 // Last usable GPIO number
+#define PINS_COUNT         21 // Total GPIO count
+#define NUM_DIGITAL_PINS   21 // Digital inputs/outputs
+#define NUM_ANALOG_INPUTS  7  // ADC inputs
+#define NUM_ANALOG_OUTPUTS 7  // PWM & DAC outputs
+#define PINS_GPIO_MAX      48 // Last usable GPIO number
 
 // SPI Interfaces
 // --------------
@@ -51,6 +51,7 @@
 // -------------------
 #define PIN_ADC1  25u // GPIO25
 #define PIN_ADC2  24u // GPIO24
+#define PIN_ADC4  28u // GPIO28
 #define PIN_ADC12 0u  // GPIO0
 #define PIN_ADC13 1u  // GPIO1
 #define PIN_ADC14 12u // GPIO12
@@ -69,14 +70,18 @@
 #define PIN_P16   16u // GPIO16
 #define PIN_P17   17u // GPIO17
 #define PIN_P18   18u // GPIO18
+#define PIN_P19   19u // GPIO19
 #define PIN_P24   24u // GPIO24
 #define PIN_P25   25u // GPIO25
+#define PIN_P28   28u // GPIO28
 #define PIN_P32   32u // GPIO32
 #define PIN_P34   34u // GPIO34
 #define PIN_P36   36u // GPIO36
 #define PIN_P40   40u // GPIO40
 #define PIN_P41   41u // GPIO41
+#define PIN_P48   48u // GPIO48
 #define PIN_PWM0  18u // GPIO18
+#define PIN_PWM1  19u // GPIO19
 #define PIN_PWM4  24u // GPIO24
 #define PIN_PWM5  25u // GPIO25
 #define PIN_PWM6  32u // GPIO32
@@ -103,30 +108,34 @@
 
 // Arduino pin names
 // -----------------
-#define PIN_D0  24u // GPIO24
-#define PIN_D1  25u // GPIO25
-#define PIN_D2  32u // GPIO32
-#define PIN_D3  34u // GPIO34
-#define PIN_D4  36u // GPIO36
-#define PIN_D5  1u  // GPIO1
-#define PIN_D6  0u  // GPIO0
-#define PIN_D7  11u // GPIO11
-#define PIN_D8  10u // GPIO10
-#define PIN_D9  12u // GPIO12
-#define PIN_D10 13u // GPIO13
-#define PIN_D11 14u // GPIO14
-#define PIN_D12 15u // GPIO15
-#define PIN_D13 16u // GPIO16
-#define PIN_D14 17u // GPIO17
-#define PIN_D15 18u // GPIO18
-#define PIN_D16 41u // GPIO41
-#define PIN_D17 40u // GPIO40
+#define PIN_D0  48u // GPIO48
+#define PIN_D1  24u // GPIO24
+#define PIN_D2  25u // GPIO25
+#define PIN_D3  28u // GPIO28
+#define PIN_D4  32u // GPIO32
+#define PIN_D5  34u // GPIO34
+#define PIN_D6  36u // GPIO36
+#define PIN_D7  1u  // GPIO1
+#define PIN_D8  0u  // GPIO0
+#define PIN_D9  11u // GPIO11
+#define PIN_D10 10u // GPIO10
+#define PIN_D11 12u // GPIO12
+#define PIN_D12 13u // GPIO13
+#define PIN_D13 14u // GPIO14
+#define PIN_D14 15u // GPIO15
+#define PIN_D15 16u // GPIO16
+#define PIN_D16 17u // GPIO17
+#define PIN_D17 18u // GPIO18
+#define PIN_D18 19u // GPIO19
+#define PIN_D19 41u // GPIO41
+#define PIN_D20 40u // GPIO40
 #define PIN_A0  24u // GPIO24
 #define PIN_A1  25u // GPIO25
-#define PIN_A2  1u  // GPIO1
-#define PIN_A3  0u  // GPIO0
-#define PIN_A4  12u // GPIO12
-#define PIN_A5  13u // GPIO13
+#define PIN_A2  28u // GPIO28
+#define PIN_A3  1u  // GPIO1
+#define PIN_A4  0u  // GPIO0
+#define PIN_A5  12u // GPIO12
+#define PIN_A6  13u // GPIO13
 
 // Static pin names
 // ----------------
@@ -136,6 +145,7 @@ static const unsigned char A2 = PIN_A2;
 static const unsigned char A3 = PIN_A3;
 static const unsigned char A4 = PIN_A4;
 static const unsigned char A5 = PIN_A5;
+static const unsigned char A6 = PIN_A6;
 static const unsigned char D0 = PIN_D0;
 static const unsigned char D1 = PIN_D1;
 static const unsigned char D2 = PIN_D2;
@@ -154,3 +164,6 @@ static const unsigned char D14 = PIN_D14;
 static const unsigned char D15 = PIN_D15;
 static const unsigned char D16 = PIN_D16;
 static const unsigned char D17 = PIN_D17;
+static const unsigned char D18 = PIN_D18;
+static const unsigned char D19 = PIN_D19;
+static const unsigned char D20 = PIN_D20;
