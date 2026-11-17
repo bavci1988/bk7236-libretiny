@@ -1,5 +1,7 @@
 #include "wifi_armino.h"
 
+#include <libretiny.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -89,6 +91,8 @@ static bk_err_t wifi_event_cb(void *arg, event_module_t module, int event_id, vo
 				break;
 			case EVENT_WIFI_STA_DISCONNECTED: {
 				wifi_event_sta_disconnected_t *info = (wifi_event_sta_disconnected_t *)event_data;
+				if (info)
+					LT_DM(WIFI, "STA disconnected, ARMINO reason %d, local %d", info->disconnect_reason, info->local_generated);
 				event_cb(LTW_EVENT_STA_DISCONNECTED, info ? reason_to_lt(info->disconnect_reason) : 0);
 				break;
 			}
