@@ -66,9 +66,15 @@ bool WiFiClass::reconnect(const uint8_t *bssid) {
 
 bool WiFiClass::disconnect(bool wifiOff) {
 	ltw_ap_info_t link;
-	// only disconnect an existing connection, a new connection is started by ltw_sta_connect()
-	if (DATA->staEnabled && ltw_sta_get_link(&link))
-		ltw_sta_disconnect();
+	if (DATA->staEnabled) {
+		if (ltw_sta_get_link(&link))
+			// disconnect an existing connection
+			ltw_sta_disconnect();
+		else
+			// abort a pending connection attempt (ARMINO keeps retrying otherwise);
+			// a new connection is started by ltw_sta_connect()
+			ltw_sta_stop();
+	}
 	DATA->staStatus = WL_DISCONNECTED;
 	if (wifiOff)
 		enableSTA(false);

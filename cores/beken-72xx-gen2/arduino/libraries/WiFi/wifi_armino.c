@@ -101,9 +101,13 @@ static bk_err_t wifi_event_cb(void *arg, event_module_t module, int event_id, vo
 						info->disconnect_reason,
 						info->local_generated
 					);
-				// after a scan, wpa_supplicant reports a transition to DISCONNECTED (reason 0, not local)
-				// without any connection; it does not abort a running connection attempt - ignore it
-				if (!sta_linked && info && info->disconnect_reason == 0 && !info->local_generated)
+				// without an existing link, ARMINO also reports state changes that are no connection failures:
+				// - after a scan, wpa_supplicant leaves the scan state with reason 0 (not local),
+				//   which does not abort a running connection attempt
+				// - stopping the STA interface reports a local 802.11 reason (e.g. 3, DEAUTH_LEAVING)
+				// real failures use ARMINO's own reasons (>= 256: NO_AP_FOUND, WRONG_PASSWORD, ...)
+				if (!sta_linked && info &&
+					(info->local_generated ? info->disconnect_reason < 256 : info->disconnect_reason == 0))
 					break;
 				sta_linked = false;
 				event_cb(LTW_EVENT_STA_DISCONNECTED, info ? reason_to_lt(info->disconnect_reason) : 0);
@@ -216,6 +220,9 @@ bool ltw_ap_start(const char *ssid, const char *pass, uint8_t channel, bool hidd
 		strncpy(config.password, pass, WIFI_PASSWORD_LEN - 1);
 	config.channel = channel;
 	config.hidden  = hidden;
+	// ARMINO falls back to its default (with a warning) for values above the supported maximum
+	if (max_conn > CONFIG_WIFI_MAC_SUPPORT_STAS_MAX_NUM)
+		max_conn = CONFIG_WIFI_MAC_SUPPORT_STAS_MAX_NUM;
 	config.max_con = max_conn;
 	if (bk_wifi_ap_set_config(&config) != BK_OK)
 		return false;
