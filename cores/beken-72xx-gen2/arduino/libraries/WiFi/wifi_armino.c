@@ -33,6 +33,7 @@ extern void *net_get_uap_handle(void);
 #define LT_REASON_AUTH_FAIL		 202
 
 static ltw_event_cb_t event_cb = NULL;
+static bool sta_linked		   = false;
 
 static uint8_t security_to_auth(wifi_security_t security) {
 	switch (security) {
@@ -87,12 +88,23 @@ static bk_err_t wifi_event_cb(void *arg, event_module_t module, int event_id, vo
 				event_cb(LTW_EVENT_SCAN_DONE, 0);
 				break;
 			case EVENT_WIFI_STA_CONNECTED:
+				sta_linked = true;
 				event_cb(LTW_EVENT_STA_CONNECTED, 0);
 				break;
 			case EVENT_WIFI_STA_DISCONNECTED: {
 				wifi_event_sta_disconnected_t *info = (wifi_event_sta_disconnected_t *)event_data;
 				if (info)
-					LT_DM(WIFI, "STA disconnected, ARMINO reason %d, local %d", info->disconnect_reason, info->local_generated);
+					LT_DM(
+						WIFI,
+						"STA disconnected, ARMINO reason %d, local %d",
+						info->disconnect_reason,
+						info->local_generated
+					);
+				// after a scan, wpa_supplicant reports a transition to DISCONNECTED (reason 0, not local)
+				// without any connection; it does not abort a running connection attempt - ignore it
+				if (!sta_linked && info && info->disconnect_reason == 0 && !info->local_generated)
+					break;
+				sta_linked = false;
 				event_cb(LTW_EVENT_STA_DISCONNECTED, info ? reason_to_lt(info->disconnect_reason) : 0);
 				break;
 			}
@@ -165,8 +177,8 @@ bool ltw_sta_get_link(ltw_ap_info_t *info) {
 static void ip4_to_config(const ltw_ip4_t *ip, netif_ip4_config_t *config) {
 	const uint8_t *b;
 	memset(config, 0, sizeof(*config));
-#define IP4_STR(dst, val)                                                      \
-	b = (const uint8_t *)&(val);                                               \
+#define IP4_STR(dst, val)        \
+	b = (const uint8_t *)&(val); \
 	snprintf(dst, NETIF_IP4_STR_LEN, "%u.%u.%u.%u", b[0], b[1], b[2], b[3]);
 	IP4_STR(config->ip, ip->ip);
 	IP4_STR(config->mask, ip->mask);
@@ -201,9 +213,9 @@ bool ltw_ap_start(const char *ssid, const char *pass, uint8_t channel, bool hidd
 	strncpy(config.ssid, ssid, WIFI_SSID_STR_LEN - 1);
 	if (pass)
 		strncpy(config.password, pass, WIFI_PASSWORD_LEN - 1);
-	config.channel	   = channel;
-	config.hidden	   = hidden;
-	config.max_con	   = max_conn;
+	config.channel = channel;
+	config.hidden  = hidden;
+	config.max_con = max_conn;
 	if (bk_wifi_ap_set_config(&config) != BK_OK)
 		return false;
 	return bk_wifi_ap_start() == BK_OK;
