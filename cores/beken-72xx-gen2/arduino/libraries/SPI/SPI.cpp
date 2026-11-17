@@ -20,15 +20,8 @@ ArduinoSPI SPI;
 
 // a byte takes 80 us at 100 kHz; allow some milliseconds before giving up
 #define SPI_TIMEOUT_US 10000
-
-static bool waitFor(bool (*ready)(spi_hw_t *), spi_hw_t *hw) {
-	uint32_t start = micros();
-	while (!ready(hw)) {
-		if (micros() - start > SPI_TIMEOUT_US)
-			return false;
-	}
-	return true;
-}
+// bytes written ahead of the received ones (well below the FIFO depth)
+#define SPI_IN_FLIGHT  4
 
 bool ArduinoSPI::configure(const SPISettings &settings) {
 	uint8_t mode		= settings.getDataMode();
@@ -110,19 +103,39 @@ void ArduinoSPI::transferBytes(const uint8_t *txBuf, uint8_t *rxBuf, size_t coun
 		spi_ll_disable_rx(hw);
 		spi_ll_clear_tx_fifo(hw);
 		spi_ll_clear_rx_fifo(hw);
+		while (spi_ll_is_rx_fifo_rd_ready(hw))
+			spi_ll_read_byte(hw);
 		spi_ll_set_tx_trans_len(hw, len);
 		spi_ll_set_rx_trans_len(hw, len);
+
+		// keep the TX FIFO ahead of the RX side, so that the master never runs out of data
+		// (which would clock out extra frames), but never more than the RX FIFO can hold
+		uint32_t txPos = 0, rxPos = 0;
+		while (txPos < len && txPos - rxPos < SPI_IN_FLIGHT && spi_ll_is_tx_fifo_wr_ready(hw)) {
+			spi_ll_write_byte(hw, txBuf ? txBuf[txPos] : 0xFF);
+			txPos++;
+		}
 		spi_ll_enable_tx_rx(hw);
-		for (uint32_t i = 0; i < len; i++) {
-			if (!waitFor(spi_ll_is_tx_fifo_wr_ready, hw))
+
+		uint32_t start = micros();
+		while (rxPos < len) {
+			bool progress = false;
+			if (txPos < len && txPos - rxPos < SPI_IN_FLIGHT && spi_ll_is_tx_fifo_wr_ready(hw)) {
+				spi_ll_write_byte(hw, txBuf ? txBuf[txPos] : 0xFF);
+				txPos++;
+				progress = true;
+			}
+			if (spi_ll_is_rx_fifo_rd_ready(hw)) {
+				uint8_t data = spi_ll_read_byte(hw);
+				if (rxBuf)
+					rxBuf[rxPos] = data;
+				rxPos++;
+				progress = true;
+			}
+			if (progress)
+				start = micros();
+			else if (micros() - start > SPI_TIMEOUT_US)
 				goto timeout;
-			spi_ll_write_byte(hw, txBuf ? txBuf[i] : 0xFF);
-			// read back each byte, so that the RX FIFO can't overflow
-			if (!waitFor(spi_ll_is_rx_fifo_rd_ready, hw))
-				goto timeout;
-			uint8_t data = spi_ll_read_byte(hw);
-			if (rxBuf)
-				rxBuf[i] = data;
 		}
 		spi_ll_disable_tx(hw);
 		spi_ll_disable_rx(hw);
