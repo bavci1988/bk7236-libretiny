@@ -35,6 +35,8 @@ extern void *net_get_uap_handle(void);
 
 static ltw_event_cb_t event_cb = NULL;
 static bool sta_linked		   = false;
+// WiFi power save requested by WiFi.setSleep()
+static bool sta_ps_enabled = false;
 
 static uint8_t security_to_auth(wifi_security_t security) {
 	switch (security) {
@@ -122,8 +124,12 @@ static bk_err_t wifi_event_cb(void *arg, event_module_t module, int event_id, vo
 		}
 	} else if (module == EVENT_MOD_NETIF && event_id == EVENT_NETIF_GOT_IP4) {
 		netif_event_got_ip4_t *info = (netif_event_got_ip4_t *)event_data;
-		if (!info || info->netif_if == NETIF_IF_STA)
+		if (!info || info->netif_if == NETIF_IF_STA) {
+			// ARMINO ignores power save requests while the SoftAP runs; apply it again when connected
+			if (sta_ps_enabled)
+				bk_wifi_sta_pm_enable();
 			event_cb(LTW_EVENT_STA_GOT_IP, 0);
+		}
 	}
 	return BK_OK;
 }
@@ -230,7 +236,11 @@ bool ltw_ap_start(const char *ssid, const char *pass, uint8_t channel, bool hidd
 }
 
 bool ltw_ap_stop(void) {
-	return bk_wifi_ap_stop() == BK_OK;
+	bool ret = bk_wifi_ap_stop() == BK_OK;
+	// power save is only possible without the SoftAP
+	if (sta_ps_enabled)
+		bk_wifi_sta_pm_enable();
+	return ret;
 }
 
 uint8_t ltw_ap_get_sta_num(void) {
@@ -267,6 +277,7 @@ void *ltw_get_netif(bool ap) {
 }
 
 bool ltw_set_sleep(bool enable) {
+	sta_ps_enabled = enable;
 	return (enable ? bk_wifi_sta_pm_enable() : bk_wifi_sta_pm_disable()) == BK_OK;
 }
 
