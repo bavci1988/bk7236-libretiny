@@ -23,6 +23,11 @@ class ArduinoSPI : public arduino::HardwareSPI {
 	void transfer(void *buf, size_t count) override;
 	void transferBytes(const uint8_t *txBuf, uint8_t *rxBuf, size_t count);
 
+	// ESP32-style, used by ESPHome's Arduino SPI bus
+	void writeBytes(const uint8_t *data, size_t count) {
+		transferBytes(data, nullptr, count);
+	}
+
 	void usingInterrupt(int interruptNumber) override {}
 
 	void notUsingInterrupt(int interruptNumber) override {}
