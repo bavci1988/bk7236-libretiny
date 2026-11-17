@@ -94,6 +94,10 @@
 #define LT_AUTO_DOWNLOAD_REBOOT 1
 #endif
 
+#ifndef LT_AUTO_LIGHT_SLEEP
+#define LT_AUTO_LIGHT_SLEEP 0
+#endif
+
 // Per-module logging output - applies to all loglevels
 #ifndef LT_DEBUG_ALL
 #define LT_DEBUG_ALL 0

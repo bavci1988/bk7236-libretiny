@@ -37,6 +37,21 @@ static ltw_event_cb_t event_cb = NULL;
 static bool sta_linked		   = false;
 // WiFi power save requested by WiFi.setSleep()
 static bool sta_ps_enabled = false;
+static bool sta_has_ip	   = false;
+static bool ap_running	   = false;
+
+// LT_AUTO_LIGHT_SLEEP: the CPU may sleep only while the station can be woken by its access point
+static void update_light_sleep(void) {
+#if LT_AUTO_LIGHT_SLEEP
+	static bool allowed = false;
+	bool allow			= sta_ps_enabled && sta_has_ip && !ap_running;
+	if (allow == allowed)
+		return;
+	allowed = allow;
+	lt_light_sleep_allow(allow);
+	LT_IM(WIFI, "Light sleep %s", allow ? "allowed" : "forbidden");
+#endif
+}
 
 static uint8_t security_to_auth(wifi_security_t security) {
 	switch (security) {
@@ -112,6 +127,8 @@ static bk_err_t wifi_event_cb(void *arg, event_module_t module, int event_id, vo
 					(info->local_generated ? info->disconnect_reason < 256 : info->disconnect_reason == 0))
 					break;
 				sta_linked = false;
+				sta_has_ip = false;
+				update_light_sleep();
 				event_cb(LTW_EVENT_STA_DISCONNECTED, info ? reason_to_lt(info->disconnect_reason) : 0);
 				break;
 			}
@@ -128,6 +145,8 @@ static bk_err_t wifi_event_cb(void *arg, event_module_t module, int event_id, vo
 			// ARMINO ignores power save requests while the SoftAP runs; apply it again when connected
 			if (sta_ps_enabled)
 				bk_wifi_sta_pm_enable();
+			sta_has_ip = true;
+			update_light_sleep();
 			event_cb(LTW_EVENT_STA_GOT_IP, 0);
 		}
 	}
@@ -232,6 +251,9 @@ bool ltw_ap_start(const char *ssid, const char *pass, uint8_t channel, bool hidd
 	config.max_con = max_conn;
 	if (bk_wifi_ap_set_config(&config) != BK_OK)
 		return false;
+	// the CPU must stay awake for the SoftAP clients
+	ap_running = true;
+	update_light_sleep();
 	return bk_wifi_ap_start() == BK_OK;
 }
 
@@ -240,6 +262,8 @@ bool ltw_ap_stop(void) {
 	// power save is only possible without the SoftAP
 	if (sta_ps_enabled)
 		bk_wifi_sta_pm_enable();
+	ap_running = false;
+	update_light_sleep();
 	return ret;
 }
 
@@ -278,6 +302,7 @@ void *ltw_get_netif(bool ap) {
 
 bool ltw_set_sleep(bool enable) {
 	sta_ps_enabled = enable;
+	update_light_sleep();
 	return (enable ? bk_wifi_sta_pm_enable() : bk_wifi_sta_pm_disable()) == BK_OK;
 }
 

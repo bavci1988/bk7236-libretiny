@@ -11,3 +11,7 @@ __attribute__((weak)) void lt_deep_sleep_keep_floating_gpio(uint32_t gpio_index_
 __attribute__((weak)) void lt_deep_sleep_config_timer(uint32_t sleep_duration);
 
 __attribute__((weak)) void lt_deep_sleep_enter();
+
+__attribute__((weak)) bool lt_light_sleep_allow(bool allow) {
+	return false;
+}

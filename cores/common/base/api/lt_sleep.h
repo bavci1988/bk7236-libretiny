@@ -44,3 +44,16 @@ void lt_deep_sleep_config_timer(uint32_t sleep_duration);
  * @brief Start deep sleep
  */
 void lt_deep_sleep_enter();
+
+/**
+ * @brief Allow or forbid light sleep while the system is idle.
+ *
+ * In light sleep the CPU stops whenever no task is ready to run, until the next
+ * timer, interrupt or WiFi beacon. RAM and peripherals keep their state, and
+ * the WiFi station stays connected (use WiFi power saving as well).
+ * Light sleep is forbidden after boot.
+ *
+ * @param allow whether light sleep is allowed
+ * @return false if the chip does not support light sleep
+ */
+bool lt_light_sleep_allow(bool allow);
