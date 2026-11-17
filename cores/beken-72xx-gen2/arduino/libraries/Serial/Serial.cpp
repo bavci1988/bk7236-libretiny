@@ -8,6 +8,8 @@ extern "C" {
 extern int uart_read_byte(uart_id_t id);
 extern bk_err_t uart_write_byte(uart_id_t id, uint8_t data);
 extern uint32_t uart_wait_tx_over(void);
+// UARTs checked before entering low-voltage sleep (pm_hooks.c)
+extern uint32_t lt_uart_tx_mask;
 }
 
 // LibreTiny port N is SoC UART N, which is ARMINO UART_ID_(N-1)
@@ -44,6 +46,7 @@ void SerialClass::configure(unsigned long baudrate, uint16_t config) {
 		.tx_dma_en = UART_DMA_DISABLE,
 	};
 	bk_uart_init(UART_ID(this->port), &cfg);
+	lt_uart_tx_mask |= 1 << UART_ID(this->port);
 
 	if (this->rx != PIN_INVALID) {
 		// read the RX FIFO in our own ISR instead of the SDK's software FIFO
@@ -59,6 +62,7 @@ void SerialClass::configure(unsigned long baudrate, uint16_t config) {
 void SerialClass::endPrivate() {
 	if (!this->data)
 		return;
+	lt_uart_tx_mask &= ~(1 << UART_ID(this->port));
 
 	bk_uart_disable_rx_interrupt(UART_ID(this->port));
 	bk_uart_register_rx_isr(UART_ID(this->port), NULL, NULL);
