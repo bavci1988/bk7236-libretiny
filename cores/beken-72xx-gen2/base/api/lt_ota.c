@@ -1,16 +1,24 @@
 #include <libretiny.h>
 #include <sdk_private.h>
 
-// OTA is not supported yet: the update format expected by the bootloader
-// (OTA partition at FLASH_OTA_OFFSET) still has to be implemented.
-// The UF2 image only contains a flasher target, so no device partition is written.
+// The bootloader (Beken ARMINO "normal_bootloader", also used by Tuya) applies Tuya's
+// diff2ya OTA format: a compressed full app image ("LZCP") in the 'download' partition,
+// requested by the "manage info" block in the 'diff2ya' partition. Both are written by
+// uf2ota; the bootloader verifies the image CRC32 before erasing the app.
+
+#define DIFF2YA_MAGIC 0x004D4D4D // "MMM\0", little-endian
 
 lt_ota_type_t lt_ota_get_type() {
 	return OTA_TYPE_SINGLE;
 }
 
 bool lt_ota_is_valid(uint8_t index) {
-	return false;
+	if (index != 0)
+		return false;
+	// check download image header
+	uint32_t magic;
+	lt_flash_read(FLASH_DOWNLOAD_OFFSET, (uint8_t *)&magic, 4);
+	return magic == DIFF2YA_MAGIC;
 }
 
 uint8_t lt_ota_dual_get_current() {
@@ -22,6 +30,14 @@ uint8_t lt_ota_dual_get_stored() {
 }
 
 bool lt_ota_switch(bool revert) {
-	// nothing to activate; reverting is always possible
-	return revert;
+	if (!lt_ota_is_valid(0))
+		// no valid "download" image
+		// - return false when trying to activate
+		// - return true when trying to revert
+		return revert;
+	if (revert) {
+		// remove the update request and the "download" image
+		return lt_flash_erase_block(FLASH_DIFF2YA_OFFSET) && lt_flash_erase_block(FLASH_DOWNLOAD_OFFSET);
+	}
+	return true;
 }
