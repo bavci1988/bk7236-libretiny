@@ -19,9 +19,9 @@ extern bk_err_t gpio_dev_unmap(gpio_id_t gpio_id);
 ArduinoSPI SPI;
 
 // a byte takes 80 us at 100 kHz; allow some milliseconds before giving up
-#define SPI_TIMEOUT_US 10000
-// bytes written ahead of the received ones (well below the FIFO depth)
-#define SPI_IN_FLIGHT  4
+#define SPI_TIMEOUT_US		  10000
+// waiting for the end of the last frame (not reported as an error)
+#define SPI_FINISH_TIMEOUT_US 1000
 
 bool ArduinoSPI::configure(const SPISettings &settings) {
 	uint8_t mode		= settings.getDataMode();
@@ -91,6 +91,22 @@ void ArduinoSPI::setDataMode(uint8_t mode) {
 	beginTransaction(SPISettings(this->settings.getClockFreq(), this->settings.getBitOrder(), mode));
 }
 
+static bool waitFor(bool (*ready)(spi_hw_t *), spi_hw_t *hw, uint32_t timeoutUs) {
+	// fast path: micros() itself takes several microseconds
+	if (ready(hw))
+		return true;
+	uint32_t start = micros();
+	while (!ready(hw)) {
+		if (micros() - start > timeoutUs)
+			return false;
+	}
+	return true;
+}
+
+static bool isTxFinished(spi_hw_t *hw) {
+	return spi_ll_is_tx_finish_int_triggered(hw, spi_ll_get_interrupt_status(hw));
+}
+
 void ArduinoSPI::transferBytes(const uint8_t *txBuf, uint8_t *rxBuf, size_t count) {
 	if (!this->initialized || !count)
 		return;
@@ -105,38 +121,25 @@ void ArduinoSPI::transferBytes(const uint8_t *txBuf, uint8_t *rxBuf, size_t coun
 		spi_ll_clear_rx_fifo(hw);
 		while (spi_ll_is_rx_fifo_rd_ready(hw))
 			spi_ll_read_byte(hw);
+		spi_ll_clear_tx_finish_int_status(hw);
+		spi_ll_clear_rx_finish_int_status(hw);
 		spi_ll_set_tx_trans_len(hw, len);
 		spi_ll_set_rx_trans_len(hw, len);
-
-		// keep the TX FIFO ahead of the RX side, so that the master never runs out of data
-		// (which would clock out extra frames), but never more than the RX FIFO can hold
-		uint32_t txPos = 0, rxPos = 0;
-		while (txPos < len && txPos - rxPos < SPI_IN_FLIGHT && spi_ll_is_tx_fifo_wr_ready(hw)) {
-			spi_ll_write_byte(hw, txBuf ? txBuf[txPos] : 0xFF);
-			txPos++;
-		}
 		spi_ll_enable_tx_rx(hw);
-
-		uint32_t start = micros();
-		while (rxPos < len) {
-			bool progress = false;
-			if (txPos < len && txPos - rxPos < SPI_IN_FLIGHT && spi_ll_is_tx_fifo_wr_ready(hw)) {
-				spi_ll_write_byte(hw, txBuf ? txBuf[txPos] : 0xFF);
-				txPos++;
-				progress = true;
-			}
-			if (spi_ll_is_rx_fifo_rd_ready(hw)) {
-				uint8_t data = spi_ll_read_byte(hw);
-				if (rxBuf)
-					rxBuf[rxPos] = data;
-				rxPos++;
-				progress = true;
-			}
-			if (progress)
-				start = micros();
-			else if (micros() - start > SPI_TIMEOUT_US)
+		for (uint32_t i = 0; i < len; i++) {
+			if (!waitFor(spi_ll_is_tx_fifo_wr_ready, hw, SPI_TIMEOUT_US))
 				goto timeout;
+			spi_ll_write_byte(hw, txBuf ? txBuf[i] : 0xFF);
+			// read back each byte, so that the RX FIFO can't overflow
+			if (!waitFor(spi_ll_is_rx_fifo_rd_ready, hw, SPI_TIMEOUT_US))
+				goto timeout;
+			uint8_t data = spi_ll_read_byte(hw);
+			if (rxBuf)
+				rxBuf[i] = data;
 		}
+		// let the hardware complete the last frame before disabling it,
+		// otherwise a slow clock leaves a partial frame for the next transfer
+		waitFor(isTxFinished, hw, SPI_FINISH_TIMEOUT_US);
 		spi_ll_disable_tx(hw);
 		spi_ll_disable_rx(hw);
 		if (txBuf)
