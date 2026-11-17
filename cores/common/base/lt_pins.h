@@ -7,6 +7,7 @@
 #define LT_HW_UART0 HAS_SERIAL0
 #define LT_HW_UART1 HAS_SERIAL1
 #define LT_HW_UART2 HAS_SERIAL2
+#define LT_HW_UART3 HAS_SERIAL3
 #define LT_HW_I2C0	HAS_WIRE0
 #define LT_HW_I2C1	HAS_WIRE1
 #define LT_HW_I2C2	HAS_WIRE2
@@ -38,6 +39,15 @@
 #endif
 #ifndef PIN_SERIAL2_TX
 #define PIN_SERIAL2_TX PIN_INVALID
+#endif
+#endif
+
+#if LT_HW_UART3
+#ifndef PIN_SERIAL3_RX
+#define PIN_SERIAL3_RX PIN_INVALID
+#endif
+#ifndef PIN_SERIAL3_TX
+#define PIN_SERIAL3_TX PIN_INVALID
 #endif
 #endif
 
