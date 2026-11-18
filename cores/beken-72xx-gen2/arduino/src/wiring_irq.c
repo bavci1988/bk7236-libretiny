@@ -1,6 +1,7 @@
 #include <ArduinoPrivate.h>
 
 #include <driver/gpio.h>
+#include <modules/pm.h>
 
 extern bk_err_t gpio_dev_unmap(gpio_id_t gpio_id);
 
@@ -17,13 +18,19 @@ static void irqHandler(gpio_id_t gpio) {
 		((voidFuncPtrParam)data->irqHandler)(data->irqParam);
 	if (data->irqChange) {
 		// the hardware has no "both edges" mode - flip the edge
+		gpio_int_type_t type;
 		if (data->irqMode == RISING) {
 			data->irqMode = FALLING;
-			bk_gpio_set_interrupt_type(gpio, GPIO_INT_TYPE_FALLING_EDGE);
+			type		  = GPIO_INT_TYPE_FALLING_EDGE;
 		} else {
 			data->irqMode = RISING;
-			bk_gpio_set_interrupt_type(gpio, GPIO_INT_TYPE_RISING_EDGE);
+			type		  = GPIO_INT_TYPE_RISING_EDGE;
 		}
+		// the wake-up source sets the interrupt type too
+		if (data->irqWake)
+			bk_gpio_register_wakeup_source(gpio, type);
+		else
+			bk_gpio_set_interrupt_type(gpio, type);
 	}
 }
 
@@ -81,6 +88,15 @@ void attachInterruptParam(pin_size_t interruptNumber, voidFuncPtrParam callback,
 	bk_gpio_disable_interrupt(pin->gpio);
 	bk_gpio_register_isr(pin->gpio, irqHandler);
 	bk_gpio_set_interrupt_type(pin->gpio, type);
+	// interrupt pins also wake the CPU from light sleep (at most CONFIG_GPIO_DYNAMIC_WAKEUP_SOURCE_MAX_CNT)
+	data->irqWake = bk_gpio_register_wakeup_source(pin->gpio, type) == BK_OK;
+	if (data->irqWake) {
+		static bool wakeSourceSet = false;
+		if (!wakeSourceSet)
+			wakeSourceSet = bk_pm_wakeup_source_set(PM_WAKEUP_SOURCE_INT_GPIO, NULL) == BK_OK;
+	} else {
+		LT_W("P%u: no free slot to wake from light sleep", pin->gpio);
+	}
 	bk_gpio_enable_interrupt(pin->gpio);
 }
 

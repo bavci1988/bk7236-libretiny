@@ -16,7 +16,14 @@ struct PinData_s {
 	void *irqHandler;
 	void *irqParam;
 	bool irqChange;
+	bool irqWake;	  // registered as light sleep wake-up source
+	int8_t keepLevel; // level held during light sleep: 0/1, PIN_KEEP_NONE or PIN_KEEP_FULL
 };
+
+#define PIN_KEEP_NONE (-1)
+#define PIN_KEEP_FULL (-2)
+
+void pinKeepLevel(PinInfo *pin, PinData *data, int8_t level);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -80,6 +80,7 @@ unsigned long micros() {
 void pinRemoveMode(PinInfo *pin, uint32_t mask) {
 	PinData *data = pinData(pin);
 	if ((mask & PIN_GPIO) && (pin->enabled & PIN_GPIO)) {
+		pinKeepLevel(pin, data, PIN_KEEP_NONE);
 		bk_gpio_disable_output(pin->gpio);
 		bk_gpio_disable_input(pin->gpio);
 		bk_gpio_disable_pull(pin->gpio);
@@ -90,6 +91,9 @@ void pinRemoveMode(PinInfo *pin, uint32_t mask) {
 		bk_gpio_disable_interrupt(pin->gpio);
 		// bk_gpio_unregister_isr() is declared, but not implemented in ARMINO
 		bk_gpio_register_isr(pin->gpio, NULL);
+		if (data->irqWake)
+			bk_gpio_unregister_wakeup_source(pin->gpio);
+		data->irqWake = false;
 		pinDisable(pin, PIN_IRQ);
 	}
 	if ((mask & PIN_PWM) && (pin->enabled & PIN_PWM)) {
