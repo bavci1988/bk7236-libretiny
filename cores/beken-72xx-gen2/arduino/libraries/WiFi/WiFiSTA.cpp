@@ -1,4 +1,24 @@
+/* Copyright (c) Kuba Szczodrzyński 2022-06-26. */
+
 #include "WiFiPrivate.h"
+
+static bool getLink(WiFiData *data) {
+	memset(&data->link, 0, sizeof(data->link));
+	if (bk_wifi_sta_get_link_status(&data->link) != BK_OK)
+		return false;
+	return data->link.state == WIFI_LINKSTATE_STA_GOT_IP || data->link.state == WIFI_LINKSTATE_STA_CONNECTED;
+}
+
+static bool getIp(netif_ip4_config_t *config) {
+	memset(config, 0, sizeof(*config));
+	return bk_netif_get_ip4_config(NETIF_IF_STA, config) == BK_OK;
+}
+
+static bool applyIp(WiFiData *data) {
+	if (!data->useStaticIp)
+		return bk_netif_dhcpc_start(NETIF_IF_STA) == BK_OK;
+	return bk_netif_set_ip4_config(NETIF_IF_STA, &data->staIp) == BK_OK;
+}
 
 WiFiStatus WiFiClass::begin(
 	const char *ssid,
@@ -22,7 +42,7 @@ WiFiStatus WiFiClass::begin(
 	} else {
 		DATA->pass[0] = '\0';
 	}
-	DATA->link.channel = channel;
+	DATA->channel = channel;
 
 	if (connect && reconnect(bssid))
 		return WL_CONNECTED;
@@ -31,14 +51,10 @@ WiFiStatus WiFiClass::begin(
 
 bool WiFiClass::config(IPAddress localIP, IPAddress gateway, IPAddress subnet, IPAddress dns1, IPAddress dns2) {
 	DATA->useStaticIp = (uint32_t)localIP != 0;
-	if (DATA->useStaticIp) {
-		DATA->staticIp.ip	   = localIP;
-		DATA->staticIp.mask	   = subnet;
-		DATA->staticIp.gateway = gateway;
-		DATA->staticIp.dns	   = dns1;
-	}
+	if (DATA->useStaticIp)
+		ipToConfig(&DATA->staIp, localIP, subnet, gateway, dns1);
 	if (DATA->staEnabled)
-		return ltw_sta_set_ip4(DATA->useStaticIp ? &DATA->staticIp : NULL);
+		return applyIp(DATA);
 	return true;
 }
 
@@ -52,11 +68,19 @@ bool WiFiClass::reconnect(const uint8_t *bssid) {
 	} else {
 		LT_IM(WIFI, "Connecting to %s", DATA->ssid);
 	}
-	if (DATA->useStaticIp) {
-		ltw_sta_set_ip4(&DATA->staticIp);
-	}
+	if (DATA->useStaticIp)
+		applyIp(DATA);
 	DATA->staStatus = WL_DISCONNECTED;
-	if (!ltw_sta_connect(DATA->ssid, DATA->pass, DATA->link.channel, bssid)) {
+
+	wifi_sta_config_t config;
+	memset(&config, 0, sizeof(config));
+	config.security = WIFI_SECURITY_AUTO;
+	strncpy(config.ssid, DATA->ssid, WIFI_SSID_STR_LEN - 1);
+	strncpy(config.password, DATA->pass, WIFI_PASSWORD_LEN - 1);
+	config.channel = DATA->channel;
+	if (bssid)
+		memcpy(config.bssid, bssid, WIFI_BSSID_LEN);
+	if (bk_wifi_sta_set_config(&config) != BK_OK || bk_wifi_sta_start() != BK_OK) {
 		LT_EM(WIFI, "Starting the connection failed");
 		DATA->staStatus = WL_CONNECT_FAILED;
 		return false;
@@ -65,15 +89,14 @@ bool WiFiClass::reconnect(const uint8_t *bssid) {
 }
 
 bool WiFiClass::disconnect(bool wifiOff) {
-	ltw_ap_info_t link;
 	if (DATA->staEnabled) {
-		if (ltw_sta_get_link(&link))
+		if (getLink(DATA))
 			// disconnect an existing connection
-			ltw_sta_disconnect();
+			bk_wifi_sta_disconnect();
 		else
 			// abort a pending connection attempt (ARMINO keeps retrying otherwise);
-			// a new connection is started by ltw_sta_connect()
-			ltw_sta_stop();
+			// a new connection is started by reconnect()
+			bk_wifi_sta_stop();
 	}
 	DATA->staStatus = WL_DISCONNECTED;
 	if (wifiOff)
@@ -90,31 +113,31 @@ bool WiFiClass::getAutoReconnect() {
 }
 
 IPAddress WiFiClass::localIP() {
-	ltw_ip4_t ip;
-	if (!ltw_get_ip4(false, &ip))
+	netif_ip4_config_t config;
+	if (!getIp(&config))
 		return IPAddress();
-	return IPAddress(ip.ip);
+	return configToIp(config.ip);
 }
 
 IPAddress WiFiClass::subnetMask() {
-	ltw_ip4_t ip;
-	if (!ltw_get_ip4(false, &ip))
+	netif_ip4_config_t config;
+	if (!getIp(&config))
 		return IPAddress();
-	return IPAddress(ip.mask);
+	return configToIp(config.mask);
 }
 
 IPAddress WiFiClass::gatewayIP() {
-	ltw_ip4_t ip;
-	if (!ltw_get_ip4(false, &ip))
+	netif_ip4_config_t config;
+	if (!getIp(&config))
 		return IPAddress();
-	return IPAddress(ip.gateway);
+	return configToIp(config.gateway);
 }
 
 IPAddress WiFiClass::dnsIP(uint8_t dns_no) {
-	ltw_ip4_t ip;
-	if (dns_no != 0 || !ltw_get_ip4(false, &ip))
+	netif_ip4_config_t config;
+	if (dns_no != 0 || !getIp(&config))
 		return IPAddress();
-	return IPAddress(ip.dns);
+	return configToIp(config.dns);
 }
 
 IPAddress WiFiClass::broadcastIP() {
@@ -122,14 +145,14 @@ IPAddress WiFiClass::broadcastIP() {
 }
 
 const char *WiFiClass::getHostname() {
-	struct netif *ifs = (struct netif *)ltw_get_netif(false);
+	struct netif *ifs = (struct netif *)net_get_sta_handle();
 	if (!ifs)
 		return NULL;
 	return netif_get_hostname(ifs);
 }
 
 bool WiFiClass::setHostname(const char *hostname) {
-	struct netif *ifs = (struct netif *)ltw_get_netif(false);
+	struct netif *ifs = (struct netif *)net_get_sta_handle();
 	if (!ifs)
 		return false;
 	netif_set_hostname(ifs, (char *)storeHostname(staHostname, hostname));
@@ -137,7 +160,7 @@ bool WiFiClass::setHostname(const char *hostname) {
 }
 
 uint8_t *WiFiClass::macAddress(uint8_t *mac) {
-	ltw_get_mac(false, mac);
+	bk_get_mac(mac, MAC_TYPE_STA);
 	return mac;
 }
 
@@ -146,11 +169,11 @@ bool WiFiClass::setMacAddress(const uint8_t *mac) {
 		LT_EM(WIFI, "Invalid MAC address");
 		return false;
 	}
-	return ltw_set_mac(mac);
+	return bk_set_base_mac(mac) == BK_OK;
 }
 
 const String WiFiClass::SSID() {
-	if (!ltw_sta_get_link(&DATA->link))
+	if (!getLink(DATA))
 		return "";
 	return DATA->link.ssid;
 }
@@ -162,25 +185,25 @@ const String WiFiClass::psk() {
 }
 
 uint8_t *WiFiClass::BSSID() {
-	if (!ltw_sta_get_link(&DATA->link))
+	if (!getLink(DATA))
 		return NULL;
 	return DATA->link.bssid;
 }
 
 int32_t WiFiClass::channel() {
-	if (!ltw_sta_get_link(&DATA->link))
+	if (!getLink(DATA))
 		return 0;
 	return DATA->link.channel;
 }
 
 int8_t WiFiClass::RSSI() {
-	if (!ltw_sta_get_link(&DATA->link))
+	if (!getLink(DATA))
 		return 0;
 	return DATA->link.rssi;
 }
 
 WiFiAuthMode WiFiClass::getEncryption() {
-	if (!ltw_sta_get_link(&DATA->link))
+	if (!getLink(DATA))
 		return WIFI_AUTH_INVALID;
-	return (WiFiAuthMode)DATA->link.auth;
+	return securityToAuthMode(DATA->link.security);
 }

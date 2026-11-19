@@ -1,3 +1,5 @@
+/* Copyright (c) Kuba Szczodrzyński 2022-06-26. */
+
 #include "WiFiPrivate.h"
 
 bool WiFiClass::modePriv(WiFiMode mode, WiFiModeAction sta, WiFiModeAction ap) {
@@ -6,11 +8,11 @@ bool WiFiClass::modePriv(WiFiMode mode, WiFiModeAction sta, WiFiModeAction ap) {
 	if (sta == WLMODE_ENABLE) {
 		LT_DM(WIFI, "Enabling STA");
 		DATA->staEnabled = true;
-		ltw_set_sleep(DATA->sleep);
+		setSleep(DATA->sleep);
 		wifiEventSendArduino(ARDUINO_EVENT_WIFI_STA_START);
 	} else if (sta == WLMODE_DISABLE) {
 		LT_DM(WIFI, "Disabling STA");
-		ltw_sta_stop();
+		bk_wifi_sta_stop();
 		DATA->staEnabled = false;
 		DATA->staStatus	 = WL_DISCONNECTED;
 		wifiEventSendArduino(ARDUINO_EVENT_WIFI_STA_STOP);
@@ -22,7 +24,7 @@ bool WiFiClass::modePriv(WiFiMode mode, WiFiModeAction sta, WiFiModeAction ap) {
 		wifiEventSendArduino(ARDUINO_EVENT_WIFI_AP_START);
 	} else if (ap == WLMODE_DISABLE) {
 		LT_DM(WIFI, "Disabling AP");
-		ltw_ap_stop();
+		softAPdisconnect(false);
 		DATA->apEnabled = false;
 		wifiEventSendArduino(ARDUINO_EVENT_WIFI_AP_STOP);
 	}
@@ -48,12 +50,26 @@ IPAddress WiFiClass::hostByName(const char *hostname) {
 	return IPAddress();
 }
 
+// LT_AUTO_LIGHT_SLEEP: the CPU may sleep only while the station can be woken by its access point
+void wifiUpdateSleep() {
+#if LT_AUTO_LIGHT_SLEEP
+	static bool allowed = false;
+	bool allow			= pDATA->sleep && pDATA->staHasIp && !pDATA->apRunning;
+	if (allow == allowed)
+		return;
+	allowed = allow;
+	lt_light_sleep_allow(allow);
+	LT_IM(WIFI, "Light sleep %s", allow ? "allowed" : "forbidden");
+#endif
+}
+
 bool WiFiClass::setSleep(bool enable) {
 	LT_DM(WIFI, "WiFi sleep mode %u", enable);
 	DATA->sleep = enable;
-	if (DATA->staEnabled)
-		return ltw_set_sleep(enable);
-	return true;
+	wifiUpdateSleep();
+	if (!DATA->staEnabled)
+		return true;
+	return (enable ? bk_wifi_sta_pm_enable() : bk_wifi_sta_pm_disable()) == BK_OK;
 }
 
 bool WiFiClass::getSleep() {

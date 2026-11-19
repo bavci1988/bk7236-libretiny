@@ -1,3 +1,5 @@
+/* Copyright (c) Kuba Szczodrzyński 2022-06-26. */
+
 #include "WiFiPrivate.h"
 
 // called from the WiFi event task (WiFiEvents.cpp)
@@ -6,20 +8,21 @@ void wifiScanDone(WiFiClass *cls) {
 	if (!scan)
 		return;
 
-	int count			 = 0;
-	ltw_ap_info_t *list	 = ltw_scan_get_result(&count);
-	LT_IM(WIFI, "Found %d APs", count);
-	uint8_t apNum = cls->scanAlloc(count);
-	if (apNum < count)
+	wifi_scan_result_t result = {0};
+	if (bk_wifi_scan_get_result(&result) != BK_OK)
+		result.ap_num = 0;
+	LT_IM(WIFI, "Found %d APs", result.ap_num);
+	uint8_t apNum = cls->scanAlloc(result.ap_num);
+	if (apNum < result.ap_num)
 		LT_WM(WIFI, "Alloc failed, only %d APs will be copied", apNum);
 	for (uint8_t i = 0; i < apNum; i++) {
-		scan->ap[i].ssid	= strdup(list[i].ssid);
-		scan->ap[i].auth	= (WiFiAuthMode)list[i].auth;
-		scan->ap[i].rssi	= list[i].rssi;
-		scan->ap[i].channel = list[i].channel;
-		memcpy(scan->ap[i].bssid.addr, list[i].bssid, 6);
+		scan->ap[i].ssid	= strdup(result.aps[i].ssid);
+		scan->ap[i].auth	= securityToAuthMode(result.aps[i].security);
+		scan->ap[i].rssi	= result.aps[i].rssi;
+		scan->ap[i].channel = result.aps[i].channel;
+		memcpy(scan->ap[i].bssid.addr, result.aps[i].bssid, 6);
 	}
-	free(list);
+	bk_wifi_scan_free_result(&result);
 
 	scan->timeout = 0;
 	if (scan->running) {
@@ -45,7 +48,7 @@ int16_t WiFiClass::scanNetworks(bool async, bool showHidden, bool passive, uint3
 	xSemaphoreTake(DATA->scanSem, 0); // reset the semaphore
 	scan->running = true;
 	scan->timeout = millis() + maxMsPerChannel * 20 + 1000;
-	if (!ltw_scan_start()) {
+	if (bk_wifi_scan_start(NULL) != BK_OK) {
 		LT_EM(WIFI, "Starting the scan failed");
 		scanDelete();
 		return WIFI_SCAN_FAILED;
