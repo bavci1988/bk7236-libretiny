@@ -48,7 +48,7 @@
 				"C_NAME": "GPIO1",
 				"GPIO": "P1",
 				"IRQ": null,
-				"UART": "2_RX",
+				"UART": "1_RX",
 				"ADC": 13,
 				"I2C": "1_SDA",
 				"SWD": "DIO"
@@ -57,7 +57,7 @@
 				"C_NAME": "GPIO0",
 				"GPIO": "P0",
 				"IRQ": null,
-				"UART": "2_TX",
+				"UART": "1_TX",
 				"ADC": 12,
 				"I2C": "1_SCL",
 				"SWD": "CLK"
@@ -66,13 +66,13 @@
 				"C_NAME": "GPIO11",
 				"GPIO": "P11",
 				"IRQ": null,
-				"UART": "1_TX"
+				"UART": "0_TX"
 			},
 			"20": {
 				"C_NAME": "GPIO10",
 				"GPIO": "P10",
 				"IRQ": null,
-				"UART": "1_RX"
+				"UART": "0_RX"
 			},
 			"21": {
 				"C_NAME": "GPIO12",
@@ -134,13 +134,13 @@
 				"C_NAME": "GPIO41",
 				"GPIO": "P41",
 				"IRQ": null,
-				"UART": "3_TX"
+				"UART": "2_TX"
 			},
 			"40": {
 				"C_NAME": "GPIO40",
 				"GPIO": "P40",
 				"IRQ": null,
-				"UART": "3_RX"
+				"UART": "2_RX"
 			}
 		}
 	}

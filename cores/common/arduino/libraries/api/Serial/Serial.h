@@ -77,9 +77,6 @@ extern SerialClass Serial1;
 #if LT_HW_UART2
 extern SerialClass Serial2;
 #endif
-#if LT_HW_UART3
-extern SerialClass Serial3;
-#endif
 
 #define SerialN(x) Serial##x
 #define SerialM(x) SerialN(x)

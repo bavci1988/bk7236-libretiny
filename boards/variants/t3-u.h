@@ -34,18 +34,18 @@
 
 // Serial ports
 // ------------
-#define PIN_SERIAL1_RX  10u // GPIO10
-#define PIN_SERIAL1_TX  11u // GPIO11
-#define PIN_SERIAL2_RX  1u  // GPIO1
-#define PIN_SERIAL2_TX  0u  // GPIO0
-#define PIN_SERIAL3_RX  40u // GPIO40
-#define PIN_SERIAL3_TX  41u // GPIO41
-#define PINS_SERIAL1_RX {10u}
-#define PINS_SERIAL1_TX {11u}
-#define PINS_SERIAL2_RX {1u}
-#define PINS_SERIAL2_TX {0u}
-#define PINS_SERIAL3_RX {40u}
-#define PINS_SERIAL3_TX {41u}
+#define PIN_SERIAL0_RX  10u // GPIO10
+#define PIN_SERIAL0_TX  11u // GPIO11
+#define PIN_SERIAL1_RX  1u  // GPIO1
+#define PIN_SERIAL1_TX  0u  // GPIO0
+#define PIN_SERIAL2_RX  40u // GPIO40
+#define PIN_SERIAL2_TX  41u // GPIO41
+#define PINS_SERIAL0_RX {10u}
+#define PINS_SERIAL0_TX {11u}
+#define PINS_SERIAL1_RX {1u}
+#define PINS_SERIAL1_TX {0u}
+#define PINS_SERIAL2_RX {40u}
+#define PINS_SERIAL2_TX {41u}
 
 // Pin function macros
 // -------------------
@@ -82,19 +82,19 @@
 #define PIN_PWM6  32u // GPIO32
 #define PIN_PWM8  34u // GPIO34
 #define PIN_PWM10 36u // GPIO36
-#define PIN_RX1   10u // GPIO10
-#define PIN_RX2   1u  // GPIO1
-#define PIN_RX3   40u // GPIO40
+#define PIN_RX0   10u // GPIO10
+#define PIN_RX1   1u  // GPIO1
+#define PIN_RX2   40u // GPIO40
 #define PIN_SCK   14u // GPIO14
-#define PIN_TX1   11u // GPIO11
-#define PIN_TX2   0u  // GPIO0
-#define PIN_TX3   41u // GPIO41
+#define PIN_TX0   11u // GPIO11
+#define PIN_TX1   0u  // GPIO0
+#define PIN_TX2   41u // GPIO41
 
 // Port availability
 // -----------------
+#define HAS_SERIAL0             1
 #define HAS_SERIAL1             1
 #define HAS_SERIAL2             1
-#define HAS_SERIAL3             1
 #define HAS_SPI0                1
 #define HAS_WIRE1               1
 #define SERIAL_INTERFACES_COUNT 3

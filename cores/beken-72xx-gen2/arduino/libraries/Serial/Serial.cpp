@@ -12,8 +12,8 @@ extern uint32_t uart_wait_tx_over(void);
 extern uint32_t lt_uart_tx_mask;
 }
 
-// LibreTiny port N is SoC UART N, which is ARMINO UART_ID_(N-1)
-#define UART_ID(port) ((uart_id_t)((port) - 1))
+// LibreTiny port N is SoC UART N (datasheet numbering), which is ARMINO UART_ID_N
+#define UART_ID(port) ((uart_id_t)(port))
 
 static void callback(uart_id_t id, void *param) {
 	SerialRingBuffer *buf = (SerialRingBuffer *)param;

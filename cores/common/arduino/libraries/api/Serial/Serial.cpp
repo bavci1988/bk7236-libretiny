@@ -73,23 +73,6 @@ bool SerialClass::validatePins(pin_size_t rx, pin_size_t tx) {
 			break;
 #endif
 
-#if LT_HW_UART3
-		case 3:
-			if (rx != PIN_INVALID
-#ifdef PINS_SERIAL3_RX
-				&& !ltArrayContains((pin_size_t[])PINS_SERIAL3_RX, rx)
-#endif
-			)
-				return false;
-			if (tx != PIN_INVALID
-#ifdef PINS_SERIAL3_TX
-				&& !ltArrayContains((pin_size_t[])PINS_SERIAL3_TX, tx)
-#endif
-			)
-				return false;
-			break;
-#endif
-
 		default:
 			return false;
 	}
@@ -176,9 +159,6 @@ SerialClass Serial1(1, PIN_SERIAL1_RX, PIN_SERIAL1_TX);
 #endif
 #if LT_HW_UART2
 SerialClass Serial2(2, PIN_SERIAL2_RX, PIN_SERIAL2_TX);
-#endif
-#if LT_HW_UART3
-SerialClass Serial3(3, PIN_SERIAL3_RX, PIN_SERIAL3_TX);
 #endif
 
 #endif

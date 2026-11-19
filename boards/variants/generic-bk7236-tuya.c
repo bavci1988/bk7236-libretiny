@@ -22,13 +22,13 @@ PinInfo lt_arduino_pin_info_list[PINS_COUNT] = {
 	{GPIO34, PIN_GPIO | PIN_IRQ | PIN_PWM,                                PIN_NONE, 0},
 	// D6: P36, PWM10
 	{GPIO36, PIN_GPIO | PIN_IRQ | PIN_PWM,                                PIN_NONE, 0},
-	// D7: P1, UART2_RX, ADC13, I2C1_SDA, SWDIO
+	// D7: P1, UART1_RX, ADC13, I2C1_SDA, SWDIO
 	{GPIO1,  PIN_GPIO | PIN_IRQ | PIN_ADC | PIN_I2C | PIN_SWD | PIN_UART, PIN_NONE, 0},
-	// D8: P0, UART2_TX, ADC12, I2C1_SCL, SWCLK
+	// D8: P0, UART1_TX, ADC12, I2C1_SCL, SWCLK
 	{GPIO0,  PIN_GPIO | PIN_IRQ | PIN_ADC | PIN_I2C | PIN_SWD | PIN_UART, PIN_NONE, 0},
-	// D9: P11, UART1_TX
+	// D9: P11, UART0_TX
 	{GPIO11, PIN_GPIO | PIN_IRQ | PIN_UART,                               PIN_NONE, 0},
-	// D10: P10, UART1_RX
+	// D10: P10, UART0_RX
 	{GPIO10, PIN_GPIO | PIN_IRQ | PIN_UART,                               PIN_NONE, 0},
 	// D11: P12, ADC14, DP
 	{GPIO12, PIN_GPIO | PIN_IRQ | PIN_ADC,                                PIN_NONE, 0},
@@ -46,9 +46,9 @@ PinInfo lt_arduino_pin_info_list[PINS_COUNT] = {
 	{GPIO18, PIN_GPIO | PIN_IRQ | PIN_PWM,                                PIN_NONE, 0},
 	// D18: P19, PWM1
 	{GPIO19, PIN_GPIO | PIN_IRQ | PIN_PWM,                                PIN_NONE, 0},
-	// D19: P41, UART3_TX
+	// D19: P41, UART2_TX
 	{GPIO41, PIN_GPIO | PIN_IRQ | PIN_UART,                               PIN_NONE, 0},
-	// D20: P40, UART3_RX
+	// D20: P40, UART2_RX
 	{GPIO40, PIN_GPIO | PIN_IRQ | PIN_UART,                               PIN_NONE, 0},
 };
 
