@@ -160,7 +160,7 @@ if board.get("build.bkboot_version") in ["1.0.5-bk7231s", "bk7231q"]:
     queue.AppendPublic(CPPDEFINES=[("CFG_SUPPORT_BOOTLOADER", "1")])
     queue.AddLibrary(
         name="bdk_boot",
-        base_dir="$CORES_DIR/beken-72xx/base/fixups",
+        base_dir="$CORES_DIR/beken-72xx-gen1/base/fixups",
         srcs=["+<boot_handlers_bk7231u.S>"],
     )
 else:
