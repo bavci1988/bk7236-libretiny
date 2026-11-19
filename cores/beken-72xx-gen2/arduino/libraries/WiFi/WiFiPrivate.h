@@ -32,6 +32,7 @@ extern "C" {
 #include <components/event.h>
 #include <components/netif.h>
 #include <components/system.h>
+#include <modules/pm.h>
 #include <modules/wifi.h>
 #include <os/mem.h>
 

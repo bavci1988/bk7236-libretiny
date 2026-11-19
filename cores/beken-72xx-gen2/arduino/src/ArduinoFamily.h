@@ -9,11 +9,11 @@
 extern "C" {
 #endif // __cplusplus
 
-extern void vPortClearInterruptMask(uint32_t ulNewMaskValue);
-extern uint32_t ulPortSetInterruptMask(void);
+extern int port_disable_interrupts_flag(void);
+extern void port_enable_interrupts_flag(int val);
 
-#define interrupts()   vPortClearInterruptMask(0)
-#define noInterrupts() ulPortSetInterruptMask()
+#define interrupts()   port_enable_interrupts_flag(0)
+#define noInterrupts() port_disable_interrupts_flag()
 
 #ifdef __cplusplus
 } // extern "C"

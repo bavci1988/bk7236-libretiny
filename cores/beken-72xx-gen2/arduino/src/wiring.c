@@ -91,8 +91,12 @@ void pinRemoveMode(PinInfo *pin, uint32_t mask) {
 		bk_gpio_disable_interrupt(pin->gpio);
 		// bk_gpio_unregister_isr() is declared, but not implemented in ARMINO
 		bk_gpio_register_isr(pin->gpio, NULL);
-		if (data->irqWake)
+		if (data->irqWake) {
+			// this also disables the input
 			bk_gpio_unregister_wakeup_source(pin->gpio);
+			if ((pin->enabled & PIN_GPIO) && pinIsInput(pin, data))
+				bk_gpio_enable_input(pin->gpio);
+		}
 		data->irqWake = false;
 		pinDisable(pin, PIN_IRQ);
 	}

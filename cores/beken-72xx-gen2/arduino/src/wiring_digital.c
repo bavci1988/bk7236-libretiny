@@ -63,14 +63,18 @@ void pinMode(pin_size_t pinNumber, PinMode pinMode) {
 	}
 	if (!(pin->enabled & (PIN_GPIO | PIN_IRQ)))
 		gpio_dev_unmap(pin->gpio);
+	// before the new mode: releasing a held pin makes ARMINO disable it
+	if (pinEnabled(pin, PIN_GPIO))
+		pinKeepLevel(pin, data, PIN_KEEP_NONE);
+	else
+		data->keepLevel = PIN_KEEP_NONE;
 	if (bk_gpio_set_config(pin->gpio, &cfg) != BK_OK)
 		return;
-	if (!pinEnabled(pin, PIN_GPIO))
-		data->keepLevel = PIN_KEEP_NONE;
 	pinEnable(pin, PIN_GPIO);
 	data->gpioMode = pinMode;
 	// a new output starts low
-	pinKeepLevel(pin, data, pinMode == OUTPUT ? 0 : PIN_KEEP_NONE);
+	if (pinMode == OUTPUT)
+		pinKeepLevel(pin, data, 0);
 }
 
 void digitalWrite(pin_size_t pinNumber, PinStatus status) {

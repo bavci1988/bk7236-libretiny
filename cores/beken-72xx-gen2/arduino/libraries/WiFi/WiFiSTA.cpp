@@ -165,11 +165,9 @@ uint8_t *WiFiClass::macAddress(uint8_t *mac) {
 }
 
 bool WiFiClass::setMacAddress(const uint8_t *mac) {
-	if (mac[0] & 0x01) {
-		LT_EM(WIFI, "Invalid MAC address");
-		return false;
-	}
-	return bk_set_base_mac(mac) == BK_OK;
+	// ARMINO can only store a new MAC address in flash, replacing the factory one
+	LT_EM(WIFI, "Changing the MAC address is not supported");
+	return false;
 }
 
 const String WiFiClass::SSID() {

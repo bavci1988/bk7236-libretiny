@@ -14,6 +14,9 @@ bool WiFiClass::modePriv(WiFiMode mode, WiFiModeAction sta, WiFiModeAction ap) {
 		LT_DM(WIFI, "Disabling STA");
 		bk_wifi_sta_stop();
 		DATA->staEnabled = false;
+		DATA->staLinked	 = false;
+		DATA->staHasIp	 = false;
+		wifiUpdateSleep();
 		DATA->staStatus	 = WL_DISCONNECTED;
 		wifiEventSendArduino(ARDUINO_EVENT_WIFI_STA_STOP);
 	}
@@ -55,11 +58,12 @@ void wifiUpdateSleep() {
 #if LT_AUTO_LIGHT_SLEEP
 	static bool allowed = false;
 	bool allow			= pDATA->sleep && pDATA->staHasIp && !pDATA->apRunning;
-	if (allow == allowed)
-		return;
+	// own vote (APP1), so that lt_light_sleep_allow() stays with the application;
+	// voted on every call, as this runs in several tasks
+	bk_pm_module_vote_sleep_ctrl(PM_SLEEP_MODULE_NAME_APP1, allow ? 1 : 0, 0);
+	if (allow != allowed)
+		LT_IM(WIFI, "Light sleep %s", allow ? "allowed" : "forbidden");
 	allowed = allow;
-	lt_light_sleep_allow(allow);
-	LT_IM(WIFI, "Light sleep %s", allow ? "allowed" : "forbidden");
 #endif
 }
 

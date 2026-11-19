@@ -39,6 +39,8 @@ bool WiFiClass::softAP(const char *ssid, const char *passphrase, int channel, bo
 	wifiUpdateSleep();
 	if (bk_wifi_ap_set_config(&config) != BK_OK || bk_wifi_ap_start() != BK_OK) {
 		LT_EM(WIFI, "SoftAP failed");
+		DATA->apRunning = false;
+		wifiUpdateSleep();
 		return false;
 	}
 	return true;

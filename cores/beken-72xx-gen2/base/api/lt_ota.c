@@ -37,7 +37,11 @@ bool lt_ota_switch(bool revert) {
 		return revert;
 	if (revert) {
 		// remove the update request and the "download" image
-		return lt_flash_erase_block(FLASH_DIFF2YA_OFFSET) && lt_flash_erase_block(FLASH_DOWNLOAD_OFFSET);
+#ifdef FLASH_DIFF2YA_OFFSET
+		if (!lt_flash_erase_block(FLASH_DIFF2YA_OFFSET))
+			return false;
+#endif
+		return lt_flash_erase_block(FLASH_DOWNLOAD_OFFSET);
 	}
 	return true;
 }

@@ -38,7 +38,7 @@
 				"Wi-Fi": "802.11 b/g/n/ax",
 				"Bluetooth": "BLE v5.2"
 			},
-			"layout": "**SDK default** (bk_idk v2.0.1, OTA 0x253000, RF 0x3FE000)"
+			"layout": "**SDK default** (bk_idk v2.2.1, OTA 0x253000, RF 0x3FE000)"
 		},
 		"extra": [
 			"Bootloader and app partitions contain CRC16 sums every 32 bytes. Offsets and sizes are physical flash addresses including the CRC bytes."
