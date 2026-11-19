@@ -29,10 +29,15 @@
 #define BK_ERR_OTP_OPERATION_ERROR    (BK_ERR_OTP_BASE - 8) /**< otp operation error*/
 #define BK_ERR_OTP_OPERATION_WARNING  (BK_ERR_OTP_BASE - 9) /**< otp operation warning*/
 #define BK_ERR_OTP_OPERATION_WRONG    (BK_ERR_OTP_BASE - 10) /**< otp operation wrong*/
-#define BK_ERR_OTP_OPERATION_FORBID   (BK_ERR_OTP_BASE - 11)/**< otp operation forbid*/
-#define BK_ERR_OTP_OPERATION_FAIL     (BK_ERR_OTP_BASE - 12)/** otp operation other error*/
-#define BK_ERR_OTP_INIT_FAIL          (BK_ERR_OTP_BASE - 13)/** otp init fail*/
+#define BK_ERR_OTP_OPERATION_FORBID   (BK_ERR_OTP_BASE - 11) /**< otp operation forbid*/
+#define BK_ERR_OTP_OPERATION_FAIL     (BK_ERR_OTP_BASE - 12) /** otp operation other error*/
+#define BK_ERR_OTP_INIT_FAIL          (BK_ERR_OTP_BASE - 13) /** otp init fail*/
 #define BK_ERR_OTP_INDEX_WRONG        (BK_ERR_OTP_BASE - 14) /**< OTP item index error*/
+#define BK_ERR_OTP_CRC_WRONG          (BK_ERR_OTP_BASE - 15) /**< OTP item index error*/
+#define BK_ERR_OTP_OPERATION_ERROR_MASK         (1 << 16)
+#define BK_ERR_OTP_OPERATION_FAIL_MASK          (1 << 19)
+#define BK_ERR_OTP_INIT_FAIL_MASK               (1 << 20)
+#define BK_ERR_OTP_FULL_ERROR_MASK              (0x1F << 16)
 
 typedef enum{
     OTP_READ_WRITE = 0,
@@ -45,6 +50,11 @@ typedef enum{
     OTP_NON_SECURITY,
 } otp_security_t;
 
+typedef enum{
+    OTP_NEED_CRC = 0,
+    OTP_NO_NEED_CRC,
+} otp_crc_t;
+
 typedef struct
 {
     uint32_t  name;
@@ -52,6 +62,7 @@ typedef struct
     uint16_t  offset;
     otp_privilege_t privilege;
     otp_security_t  security;
+    otp_crc_t  crc_en;
 } otp_item_t;
 
 typedef enum{
@@ -77,6 +88,7 @@ typedef enum{
     OTP_IMPLEMENTATION_ID,
     OTP_HW_VERSION,
     OTP_VERIFICATION_SERVICE_URL,
+    OTP_PROFILE_DEFINITION,
     OTP_ENTROPY_SEED,
     OTP_SECURE_DEBUG_PK,
     OTP_MAC_ADDRESS,
@@ -90,7 +102,7 @@ typedef enum{
     OTP1_MAX_ID,
 } otp1_id_t;
 
-extern const otp_item_t otp_map_1[32];
+extern const otp_item_t otp_map_1[33];
 
 uint32_t otp_map_1_row(void);
 

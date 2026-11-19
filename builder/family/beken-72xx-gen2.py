@@ -39,6 +39,9 @@ queue.AppendPublic(
         ("CONFIG_RELEASE_VERSION", "1"),
         "_GNU_SOURCE",
         ("MBEDTLS_CONFIG_FILE", r"\"tls_config.h\""),
+        # bk_idk release shown at boot (normally the git hash of the SDK and its daily build ID)
+        ("ARMINO_VER", r"\"v2.2.1.25\""),
+        ("BK_VERIFY_ID", r"\"D18804\""),
     ],
     ASFLAGS=[
         "-mcpu=cortex-m33+nodsp",
@@ -55,7 +58,7 @@ queue.AppendPublic(
         "-mcmse",
         "-mthumb",
         "--specs=nano.specs",
-        # startup code is provided by CMSIS (startup_bk7236.c)
+        # startup code is provided by CMSIS (startup_bk7236xx.c)
         "-nostartfiles",
         # resolve these from ARMINO (bk_init) before newlib pulls in its own copies
         "-Wl,-u,__stack_chk_guard",
@@ -95,8 +98,6 @@ queue.AddLibrary(
         "+<$SDK_DIR/components/bk_common/include>",
         "+<$SDK_DIR/middleware/soc/common/soc/include>",
         "+<$SDK_DIR/middleware/soc/common/hal/include>",
-        "+<$SDK_DIR/components/part_table>",
-        "+<$SDK_DIR/middleware/boards/bk7236/partitions>",
         "+<$SDK_DIR/components/release>",
         "+<$SDK_DIR/components/bk_startup/freertos>",
         "+<$SDK_DIR/components/easy_flash>",
@@ -136,7 +137,13 @@ queue.AddLibrary(
         "+<$SDK_DIR/middleware/driver/icu>",
         "+<$SDK_DIR/middleware/driver/i2c>",
         "+<$SDK_DIR/middleware/driver/sdcard>",
-        "+<$SDK_DIR/middleware/driver/saradc>",
+        "+<$SDK_DIR/middleware/driver/saradc/v1_1>",
+        "+<$SDK_DIR/middleware/driver/aon_wdt>",
+        "+<$SDK_DIR/middleware/driver/pwm/v1px>",
+        "+<$SDK_DIR/middleware/driver/qspi>",
+        "+<$SDK_DIR/components/bk_https/include>",
+        "+<$SDK_DIR/components/bk_ota/include>",
+        "+<$SDK_DIR/components/console/argtable3>",
         "+<$SDK_DIR/middleware/driver/pmu>",
         "+<$SDK_DIR/middleware/driver/mailbox>",
         "+<$SDK_DIR/middleware/driver/spinlock>",
@@ -168,14 +175,11 @@ queue.AddLibrary(
         "+<$SDK_DIR/components/bk_rtos/freertos>",
         "+<$SDK_DIR/components/cmsis/CMSIS_5/CMSIS/Core/Include>",
         "+<$SDK_DIR/components/cmsis/CMSIS_5/Device/Beken/bk7236xx/Include>",
-        "+<$SDK_DIR/components/cmsis/CMSIS_5/Device/Beken/bk7236xx/Include/Template>",
         "+<$SDK_DIR/components/cmsis/CMSIS_5/Device/Beken/armstar>",
         "+<$SDK_DIR/components/bk_ps/include>",
         "+<$SDK_DIR/components/coredump/cm_backtrace>",
         "+<$SDK_DIR/components/coredump/cm_backtrace/Languages/en-US>",
         "+<$SDK_DIR/components/bk_phy/include>",
-        "+<$SDK_DIR/components/wolfssl>",
-        "+<$SDK_DIR/components/wolfssl/utils>",
         "+<$SDK_DIR/components/bk_adapter/include>",
         "+<$SDK_DIR/components/bk_adapter/include/bk_private>",
         "+<$SDK_DIR/components/bk_cli/uart_debug>",
@@ -193,7 +197,6 @@ queue.AddLibrary(
         "+<$SDK_DIR/components/hmac_sha_256>",
         "+<$SDK_DIR/components/qcbor/inc>",
         "+<$SDK_DIR/components/qcbor/inc/qcbor>",
-        "+<$SDK_DIR/middleware/boards/bk7236/vnd_flash>",
         "+<$SDK_DIR/components/mbedtls/mbedtls-port/inc>",
         "+<$SDK_DIR/components/mbedtls/mbedtls/include>",
         "+<$SDK_DIR/components/mbedtls/mbedtls_ui>",
@@ -254,7 +257,7 @@ queue.AddLibrary(
         "+<bk7236/interrupts.c>",
         "+<bk7236/mpu_cfg.c>",
         "+<bk7236/stub.c>",
-        "+<common/hal/adc_hal.c>",
+        "+<bk7236/hal/adc_hal.c>",
         "+<common/hal/aon_rtc_hal_64bit.c>",
         "+<common/hal/ckmn_hal.c>",
         "+<common/hal/dma_hal.c>",
@@ -265,16 +268,16 @@ queue.AddLibrary(
         "+<common/hal/icu_hal.c>",
         "+<common/hal/jpeg_dec_hal.c>",
         "+<common/hal/jpeg_hal.c>",
-        "+<common/hal/otp_hal.c>",
+        "+<common/hal/aon_wdt_hal.c>",
         "+<common/hal/pwm_hal_v1px.c>",
         "+<common/hal/qspi_hal.c>",
         "+<common/hal/sdio_hal.c>",
         "+<common/hal/sdmadc_hal.c>",
-        "+<common/hal/spi_hal.c>",
+        "+<bk7236/hal/spi_hal.c>",
         "+<common/hal/timer_hal.c>",
         "+<common/hal/trng_hal.c>",
         "+<common/hal/uart_hal.c>",
-        "+<common/hal/wdt_hal.c>",
+        "+<bk7236/hal/wdt_hal.c>",
     ],
 )
 
@@ -334,7 +337,7 @@ queue.AddLibrary(
     name="armino_cmsis",
     base_dir=join("$SDK_DIR", "components/cmsis"),
     srcs=[
-        "+<CMSIS_5/Device/Beken/bk7236xx/Source/startup_bk7236.c>",
+        "+<CMSIS_5/Device/Beken/bk7236xx/Source/startup_bk7236xx.c>",
         "+<CMSIS_5/Device/Beken/bk7236xx/Source/system_bk7236xx.c>",
     ],
     options=dict(CPPDEFINES=[("__ARM_ARCH_8M_MAIN__", "1")]),
@@ -408,9 +411,7 @@ queue.AddLibrary(
         "+<bk7236/interrupt_statis.c>",
         "+<chip_support/chip_support.c>",
         "+<ckmn/ckmn_driver.c>",
-        "+<common/dd.c>",
         "+<common/driver.c>",
-        "+<common/drv_model.c>",
         "+<dsp/dsp.c>",
         "+<efuse/efuse_driver.c>",
         "+<flash/flash_bypass.c>",
@@ -418,7 +419,6 @@ queue.AddLibrary(
         "+<flash/flash_driver_ext.c>",
         "+<flash/flash_notify.c>",
         "+<flash/flash_partition.c>",
-        "+<flash/flash_svr_test.c>",
         "+<general_dma/v2px/dma_driver.c>",
         "+<gpio/gpio_driver_base.c>",
         "+<hw_rotate/rott_driver.c>",
@@ -427,7 +427,6 @@ queue.AddLibrary(
         "+<jpeg_dec/jpeg_dec_driver.c>",
         "+<jpeg_enc/jpeg_driver.c>",
         "+<jpeg_enc/jpeg_statis.c>",
-        "+<otp/otp_driver_v1_1.c>",
         "+<pmu/aon_pmu_driver.c>",
         "+<pwm/v1px/pwm_driver.c>",
         "+<pwr_clk/pwr_clk.c>",
@@ -439,8 +438,16 @@ queue.AddLibrary(
         "+<qspi/qspi_statis.c>",
         "+<reset_reason/reset_reason.c>",
         "+<rtc/aon_rtc_driver_64bit.c>",
-        "+<saradc/adc_driver.c>",
-        "+<saradc/adc_statis.c>",
+        "+<saradc/v1_1/adc_driver.c>",
+        "+<saradc/v1_1/adc_statis.c>",
+        "+<aon_wdt/aon_wdt_driver.c>",
+        "+<flash/CheckSumUtils.c>",
+        "+<flash/flash_ut_test.c>",
+        "+<gpio/gpio.c>",
+        "+<gpio/gpio_test.c>",
+        "+<pwm/pwm_test.c>",
+        "+<rtc/aon_rtc_test.c>",
+        "+<spi/spi_rz.c>",
         "+<scr/scr_driver_v1_26.c>",
         "+<sdmadc/sdmadc_driver.c>",
         "+<security/hal_aes.c>",
@@ -530,7 +537,6 @@ queue.AddLibrary(
     base_dir=join("$SDK_DIR", "middleware/boards"),
     srcs=[
         "+<bk7236/vnd_cal/vnd_cal.c>",
-        "+<bk7236/vnd_flash/vnd_flash.c>",
     ],
 )
 
@@ -583,6 +589,7 @@ queue.AddLibrary(
     name="armino_bk_system",
     base_dir=join("$SDK_DIR", "components/bk_system"),
     srcs=[
+        "+<bk_platform.c>",
         "+<delay.c>",
         "+<mac.c>",
         "+<os/freertos/tick.c>",
@@ -610,9 +617,41 @@ queue.AddLibrary(
     srcs=[
         "+<cli_ckmn.c>",
         "+<cli_main.c>",
+        "+<cli_partition.c>",
         "+<cli_scr.c>",
         "+<shell_task.c>",
         "+<shell_uart.c>",
+    ],
+)
+
+# Sources - components/console
+queue.AddLibrary(
+    name="armino_console",
+    base_dir=join("$SDK_DIR", "components/console"),
+    srcs=[
+        "+<argtable3/arg_cmd.c>",
+        "+<argtable3/arg_date.c>",
+        "+<argtable3/arg_dbl.c>",
+        "+<argtable3/arg_dstr.c>",
+        "+<argtable3/arg_end.c>",
+        "+<argtable3/arg_file.c>",
+        "+<argtable3/arg_hashtable.c>",
+        "+<argtable3/arg_int.c>",
+        "+<argtable3/arg_lit.c>",
+        "+<argtable3/arg_rem.c>",
+        "+<argtable3/arg_rex.c>",
+        "+<argtable3/arg_str.c>",
+        "+<argtable3/arg_utils.c>",
+        "+<argtable3/argtable3.c>",
+    ],
+)
+
+# Sources - components/ota
+queue.AddLibrary(
+    name="armino_ota",
+    base_dir=join("$SDK_DIR", "components/ota"),
+    srcs=[
+        "+<CheckSumUtils.c>",
     ],
 )
 
@@ -639,10 +678,16 @@ queue.AddLibrary(
     name="armino_bk_pm",
     base_dir=join("$SDK_DIR", "components/bk_pm"),
     srcs=[
-        "+<low_vol.c>",
-        "+<pm.c>",
-        "+<pm_misc.c>",
-        "+<pm_model.c>",
+        "+<src/bk_pm.c>",
+        "+<src/core/bk_pm_core.c>",
+        "+<src/services/bk_pm_clock.c>",
+        "+<src/services/bk_pm_debug.c>",
+        "+<src/services/bk_pm_misc.c>",
+        "+<src/services/bk_pm_power.c>",
+        "+<src/services/bk_pm_sleep.c>",
+        "+<src/services/bk_pm_sleep_callback.c>",
+        "+<src/services/bk_pm_thread.c>",
+        "+<src/services/bk_pm_wakeup_source.c>",
     ],
 )
 
@@ -757,7 +802,7 @@ queue.AddLibrary(
         "+<bk7236/interrupts.c>",
         "+<bk7236/mpu_cfg.c>",
         "+<bk7236/stub.c>",
-        "+<common/hal/adc_hal.c>",
+        "+<bk7236/hal/adc_hal.c>",
         "+<common/hal/aon_rtc_hal_64bit.c>",
         "+<common/hal/ckmn_hal.c>",
         "+<common/hal/dma_hal.c>",
@@ -768,16 +813,16 @@ queue.AddLibrary(
         "+<common/hal/icu_hal.c>",
         "+<common/hal/jpeg_dec_hal.c>",
         "+<common/hal/jpeg_hal.c>",
-        "+<common/hal/otp_hal.c>",
+        "+<common/hal/aon_wdt_hal.c>",
         "+<common/hal/pwm_hal_v1px.c>",
         "+<common/hal/qspi_hal.c>",
         "+<common/hal/sdio_hal.c>",
         "+<common/hal/sdmadc_hal.c>",
-        "+<common/hal/spi_hal.c>",
+        "+<bk7236/hal/spi_hal.c>",
         "+<common/hal/timer_hal.c>",
         "+<common/hal/trng_hal.c>",
         "+<common/hal/uart_hal.c>",
-        "+<common/hal/wdt_hal.c>",
+        "+<bk7236/hal/wdt_hal.c>",
     ],
 )
 
@@ -799,6 +844,8 @@ queue.AddLibrary(
             "-iquote$SDK_DIR/components/wpa_supplicant-2.10/bk_patch",
             # bk_patch/signal.h replaces <signal.h>, only for wpa_supplicant and bk_wifi
             "-I$SDK_DIR/components/wpa_supplicant-2.10/bk_patch",
+            # bk_idk v2.2.1 crypto_mbedtls.c only defines this for mbedTLS 3.x (PSA)
+            "'-DMBEDTLS_PRIVATE(member)=member'",
         ],
     ),
     srcs=[
@@ -1008,6 +1055,7 @@ queue.AppendPublic(
         "ble_wifi_exchange",
         "usb",
         "wifi",
+        "bk_coex",
         "gcc",
         "g",
         "c",
