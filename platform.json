@@ -74,7 +74,7 @@
     "framework-beken-armino": {
       "type": "framework",
       "optional": true,
-      "version": "https://github.com/bavci1988/bk7236-sdk#claude/festive-bardeen-ds5hrm",
+      "version": "https://github.com/bavci1988/bk7236-sdk#armino-v2.2.1",
       "toolchains": {
         "any": "gccarmnoneeabi@~1.100301.0"
       },
