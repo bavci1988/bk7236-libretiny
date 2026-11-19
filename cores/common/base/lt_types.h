@@ -16,7 +16,7 @@ typedef enum {
 	F_BK7231T  = 0x675A40B0, // Beken 7231T
 	F_BK7231N  = 0x7B3EF230, // Beken 7231N
 	F_BK7238   = 0x159AC324, // Beken 7238
-	F_BK7236   = 0x7279633D, // Beken 7236
+	F_BK7236   = 0x12727376, // Beken 7236
 	F_BK7251   = 0x6A82CC42, // Beken 7251/7252
 	F_BL60X	   = 0xDE1270B7, // Boufallo 602
 	F_LN882H   = 0xA38090A8, // Lightning LN882H
