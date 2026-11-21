@@ -7,7 +7,6 @@ extern "C" {
 
 extern int uart_read_byte(uart_id_t id);
 extern bk_err_t uart_write_byte(uart_id_t id, uint8_t data);
-extern uint32_t uart_wait_tx_over(void);
 // UARTs checked before entering low-voltage sleep (pm_hooks.c)
 extern uint32_t lt_uart_tx_mask;
 }
@@ -72,7 +71,7 @@ void SerialClass::endPrivate() {
 void SerialClass::flush() {
 	if (!this->data)
 		return;
-	uart_wait_tx_over();
+	bk_uart_wait_tx_over(UART_ID(this->port));
 }
 
 size_t SerialClass::write(uint8_t c) {

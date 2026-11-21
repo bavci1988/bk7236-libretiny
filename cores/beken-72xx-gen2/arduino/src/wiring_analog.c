@@ -116,6 +116,16 @@ void analogWrite(pin_size_t pinNumber, int value) {
 	if (chan < 0)
 		return;
 
+	if (!pinEnabled(pin, PIN_PWM)) {
+		// two channels share one timer and one compare value (0/1, 2/3, ...):
+		// the second pin of a pair would repeat or change the output of the first
+		PinInfo *other = pinByGpio(pwmToGpio[chan ^ 1]);
+		if (other && pinEnabled(other, PIN_PWM)) {
+			LT_W("P%u: PWM timer is used by P%u", pin->gpio, other->gpio);
+			return;
+		}
+	}
+
 	// GPIO can't be used together with PWM
 	pinRemoveMode(pin, PIN_GPIO | PIN_IRQ);
 
@@ -136,8 +146,7 @@ void analogWrite(pin_size_t pinNumber, int value) {
 	if (data->pwmState == LT_PWM_STOPPED) {
 		pwm_init_config_t config = {0};
 		config.period_cycle		 = period;
-		// the driver rejects a duty cycle of exactly one clock
-		config.duty_cycle = duty == 1 ? 2 : duty;
+		config.duty_cycle		 = duty;
 		if (bk_pwm_init(chan, &config) != BK_OK || bk_pwm_start(chan) != BK_OK) {
 			pinRemoveMode(pin, PIN_PWM);
 			return;

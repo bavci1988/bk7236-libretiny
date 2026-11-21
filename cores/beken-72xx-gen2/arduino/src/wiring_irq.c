@@ -37,11 +37,25 @@ static void irqHandler(gpio_id_t gpio) {
 void attachInterruptParam(pin_size_t interruptNumber, voidFuncPtrParam callback, PinStatus mode, void *param) {
 	pinCheckGetData(interruptNumber, PIN_IRQ, );
 
+	// GPIO can't be used together with PWM
+	pinRemoveMode(pin, PIN_PWM);
+
 	data->irqHandler = callback;
 	data->irqParam	 = param;
 
 	if (pinEnabled(pin, PIN_IRQ) && data->irqMode == mode)
 		return;
+
+	if (!(pin->enabled & (PIN_GPIO | PIN_IRQ))) {
+		// configure as input, releasing the default peripheral function
+		gpio_config_t cfg = {
+			.io_mode   = GPIO_INPUT_ENABLE,
+			.pull_mode = GPIO_PULL_DISABLE,
+			.func_mode = GPIO_SECOND_FUNC_DISABLE,
+		};
+		gpio_dev_unmap(pin->gpio);
+		bk_gpio_set_config(pin->gpio, &cfg);
+	}
 
 	gpio_int_type_t type;
 	bool change = false;
@@ -70,16 +84,6 @@ void attachInterruptParam(pin_size_t interruptNumber, voidFuncPtrParam callback,
 			break;
 		default:
 			return;
-	}
-	if (!(pin->enabled & (PIN_GPIO | PIN_IRQ))) {
-		// configure as input, releasing the default peripheral function
-		gpio_config_t cfg = {
-			.io_mode   = GPIO_INPUT_ENABLE,
-			.pull_mode = GPIO_PULL_DISABLE,
-			.func_mode = GPIO_SECOND_FUNC_DISABLE,
-		};
-		gpio_dev_unmap(pin->gpio);
-		bk_gpio_set_config(pin->gpio, &cfg);
 	}
 	pinEnable(pin, PIN_IRQ);
 	data->irqMode	= mode;

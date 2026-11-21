@@ -34,6 +34,9 @@ void pinKeepLevel(PinInfo *pin, PinData *data, int8_t level) {
 void pinMode(pin_size_t pinNumber, PinMode pinMode) {
 	pinCheckGetData(pinNumber, PIN_GPIO, );
 
+	// GPIO can't be used together with PWM
+	pinRemoveMode(pin, PIN_PWM);
+
 	if (pinEnabled(pin, PIN_GPIO) && data->gpioMode == pinMode)
 		return;
 

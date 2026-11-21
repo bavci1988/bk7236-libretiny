@@ -130,6 +130,9 @@ static bk_err_t wifiEventCallback(void *arg, event_module_t module, int event_id
 				break;
 			case EVENT_WIFI_STA_DISCONNECTED: {
 				armino_wifi_event_sta_disconnected_t *info = (armino_wifi_event_sta_disconnected_t *)event_data;
+				// ARMINO's own handler (registered first) has just switched the station back to DHCP
+				if (pDATA->useStaticIp)
+					bk_netif_set_ip4_config(NETIF_IF_STA, &pDATA->staIp);
 				if (info)
 					LT_DM(
 						WIFI,
