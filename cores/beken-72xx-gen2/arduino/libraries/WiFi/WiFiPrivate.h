@@ -77,6 +77,7 @@ typedef struct {
 	bool apEnabled;
 	bool apRunning;
 	bool staLinked;
+	bool staLost;
 	bool staHasIp;
 	bool sleep;
 	bool useStaticIp;

@@ -42,6 +42,12 @@ static void wifiEventHandler(WiFiEventMsg msg) {
 			break;
 		}
 		case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
+			if (pDATA->staLost) {
+				// ARMINO would keep scanning for the lost network; with a scan pending,
+				// bk_wifi_scan_start() blocks its caller for up to 30 s
+				pDATA->staLost = false;
+				bk_wifi_sta_stop();
+			}
 			eventInfo.wifi_sta_disconnected.reason = msg.reason;
 			switch (msg.reason) {
 				case WIFI_REASON_NO_AP_FOUND:
@@ -139,6 +145,8 @@ static bk_err_t wifiEventCallback(void *arg, event_module_t module, int event_id
 				if (!pDATA->staLinked && info &&
 					(info->local_generated ? info->disconnect_reason < 256 : info->disconnect_reason == 0))
 					break;
+				if (pDATA->staLinked)
+					pDATA->staLost = true;
 				pDATA->staLinked = false;
 				pDATA->staHasIp	 = false;
 				wifiUpdateSleep();

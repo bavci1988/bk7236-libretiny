@@ -21,6 +21,13 @@ void lt_init_family() {
 	// set default UART output port (ARMINO prints to UART_ID_0 by default);
 	// this also moves ARMINO's own log output there
 	bk_set_printf_port(LT_UART_DEFAULT_PORT);
+	// ARMINO's logger queues lines for a log task, which LibreTiny does not run: with a full queue
+	// each line blocks its caller (e.g. the Wi-Fi task) for 60 ms
+#if LT_UART_SILENT_ENABLED
+	bk_set_printf_enable(0);
+#else
+	bk_set_printf_sync(1);
+#endif
 #if LT_AUTO_LIGHT_SLEEP
 	// the WiFi library decides with the APP1 vote; the application may veto with lt_light_sleep_allow(false)
 	bk_pm_module_vote_sleep_ctrl(PM_SLEEP_MODULE_NAME_APP1, 0, 0);
