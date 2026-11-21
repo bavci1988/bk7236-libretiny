@@ -56,6 +56,8 @@ IPAddress WiFiClass::hostByName(const char *hostname) {
 // LT_AUTO_LIGHT_SLEEP: the CPU may sleep only while the station can be woken by its access point
 void wifiUpdateSleep() {
 #if LT_AUTO_LIGHT_SLEEP
+	if (!pWiFi)
+		return; // setSleep() before the first mode change
 	static bool allowed = false;
 	bool allow			= pDATA->sleep && pDATA->staHasIp && !pDATA->apRunning;
 	// own vote (APP1), so that lt_light_sleep_allow() stays with the application;
