@@ -24,6 +24,7 @@ struct PinData_s {
 #define PIN_KEEP_FULL (-2)
 
 void pinKeepLevel(PinInfo *pin, PinData *data, int8_t level);
+void pinPwmStop(PinData *data);
 
 #ifdef __cplusplus
 } // extern "C"

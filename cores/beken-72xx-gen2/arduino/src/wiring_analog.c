@@ -1,10 +1,13 @@
 #include <ArduinoPrivate.h>
 
 #include <driver/adc.h>
+#include <driver/gpio.h>
 #include <driver/pwm.h>
+#include <modules/pm.h>
 
 extern float bk_adc_data_calculate(uint16_t adc_val, uint8_t adc_chan);
 extern void sys_drv_set_ana_pwd_gadc_buf(uint32_t value);
+extern bk_err_t gpio_dev_unmap(gpio_id_t gpio_id);
 
 // PWM clock: XTAL (selected by the PWM driver)
 #define PWM_TICKS_PER_US (CONFIG_XTAL_FREQ / 1000 / 1000)
@@ -110,6 +113,20 @@ uint16_t analogReadMaxVoltage(pin_size_t pinNumber) {
 	return 3300;
 }
 
+// ARMINO's low-voltage sleep powers the PWM timers down and lets the pins float:
+// the CPU stays awake while a PWM output is active
+static uint8_t pwmRunning = 0;
+
+void pinPwmStop(PinData *data) {
+	if (data->pwmState != LT_PWM_RUNNING)
+		return;
+	bk_pwm_stop(data->pwmChannel);
+	bk_pwm_deinit(data->pwmChannel);
+	data->pwmState = LT_PWM_STOPPED;
+	if (--pwmRunning == 0)
+		bk_pm_module_vote_sleep_ctrl(PM_SLEEP_MODULE_NAME_PWM_1, 1, 0);
+}
+
 void analogWrite(pin_size_t pinNumber, int value) {
 	pinCheckGetData(pinNumber, PIN_PWM, );
 	int chan = gpioToPwm(pin->gpio);
@@ -148,6 +165,20 @@ void analogWrite(pin_size_t pinNumber, int value) {
 		data->pwmState	 = LT_PWM_STOPPED;
 	}
 
+	if (duty == 0) {
+		// off: stop the timer and drive the pin low, so that the CPU may sleep again
+		pinPwmStop(data);
+		gpio_config_t cfg = {
+			.io_mode   = GPIO_OUTPUT_ENABLE,
+			.pull_mode = GPIO_PULL_DISABLE,
+			.func_mode = GPIO_SECOND_FUNC_DISABLE,
+		};
+		gpio_dev_unmap(pin->gpio);
+		bk_gpio_set_config(pin->gpio, &cfg);
+		bk_gpio_set_output_low(pin->gpio);
+		return;
+	}
+
 	if (data->pwmState == LT_PWM_STOPPED) {
 		pwm_init_config_t config = {0};
 		config.period_cycle		 = period;
@@ -157,6 +188,8 @@ void analogWrite(pin_size_t pinNumber, int value) {
 			return;
 		}
 		data->pwmState = LT_PWM_RUNNING;
+		if (pwmRunning++ == 0)
+			bk_pm_module_vote_sleep_ctrl(PM_SLEEP_MODULE_NAME_PWM_1, 0, 0);
 	} else {
 		pwm_period_duty_config_t config = {0};
 		config.period_cycle				= period;

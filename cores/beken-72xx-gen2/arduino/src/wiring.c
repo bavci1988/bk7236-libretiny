@@ -101,10 +101,7 @@ void pinRemoveMode(PinInfo *pin, uint32_t mask) {
 		pinDisable(pin, PIN_IRQ);
 	}
 	if ((mask & PIN_PWM) && (pin->enabled & PIN_PWM)) {
-		if (data->pwmState == LT_PWM_RUNNING)
-			bk_pwm_stop(data->pwmChannel);
-		bk_pwm_deinit(data->pwmChannel);
-		data->pwmState = LT_PWM_STOPPED;
+		pinPwmStop(data);
 		gpio_dev_unmap(pin->gpio);
 		pinDisable(pin, PIN_PWM);
 	}
