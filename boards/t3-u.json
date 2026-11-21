@@ -1,6 +1,5 @@
 {
 	"_base": [
-		"generic",
 		"beken-7236",
 		"beken-7236-tuya",
 		"ic/bk7236-qfn40",
