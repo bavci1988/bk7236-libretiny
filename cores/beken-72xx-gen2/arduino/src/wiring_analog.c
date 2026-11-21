@@ -121,7 +121,12 @@ void analogWrite(pin_size_t pinNumber, int value) {
 		// the second pin of a pair would repeat or change the output of the first
 		PinInfo *other = pinByGpio(pwmToGpio[chan ^ 1]);
 		if (other && pinEnabled(other, PIN_PWM)) {
-			LT_W("P%u: PWM timer is used by P%u", pin->gpio, other->gpio);
+			// warn once, as the application may keep writing
+			static gpio_id_t warned = GPIO_NUM;
+			if (warned != pin->gpio) {
+				warned = pin->gpio;
+				LT_W("P%u: PWM timer is used by P%u", pin->gpio, other->gpio);
+			}
 			return;
 		}
 	}
