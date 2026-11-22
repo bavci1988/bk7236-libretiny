@@ -80,8 +80,8 @@
       },
       "libraries": {
         "lwip": {
-          "2.2.0": "2.2.0-armino",
-          "default": "2.2.0-armino"
+          "2.2.0": "https://github.com/bavci1988/libretiny-lwip#armino-v2.2.1-port",
+          "default": "https://github.com/bavci1988/libretiny-lwip#armino-v2.2.1-port"
         }
       }
     },
