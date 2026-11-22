@@ -202,6 +202,11 @@ class LibretinyPlatform(PlatformBase):
             if name not in self.packages:
                 raise ValueError(f"Library '{name}' doesn't exist")
             package = self.packages[name]
+            package["optional"] = False
+            if "://" in version:
+                # a version in a repository of its own, e.g. a fork with a new port
+                package["version"] = version
+                continue
             if "base_url" not in package:
                 if "#" not in package.get("version", ""):
                     click.secho(
@@ -213,7 +218,6 @@ class LibretinyPlatform(PlatformBase):
                 package["base_url"] = package["version"].partition("#")[0]
             if package.get("version_prefix", False):
                 version = "v" + version
-            package["optional"] = False
             package["version"] = package["base_url"] + "#" + version
 
         # store version numbers of all used packages
