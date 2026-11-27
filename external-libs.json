@@ -146,6 +146,24 @@
 			"+<port>"
 		]
 	},
+	"lwip-xr806": {
+		"package": "library-lwip",
+		"sources": [
+			"+<src/api/*.c>",
+			"+<src/core/*.c>",
+			"+<src/core/ipv4/*.c>",
+			"+<src/core/ipv6/*.c>",
+			"+<src/netif/ethernet.c>",
+			"+<src/apps/mdns/*.c>",
+			"+<src/apps/sntp/sntp.c>",
+			"+<port/*.c>"
+		],
+		"includes": [
+			"+<src/include>",
+			"+<src/include/ipv4>",
+			"+<port>"
+		]
+	},
 	"lwip-ambz2": {
 		"package": "library-lwip",
 		"sources": [

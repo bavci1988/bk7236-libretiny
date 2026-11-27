@@ -120,5 +120,18 @@
 		"short_name": "LN882H",
 		"description": "Lightning LN882H",
 		"package": "framework-lightning-ln882h"
+	},
+	"xradio-xr80x": {
+		"parent": null,
+		"code": "xr80x",
+		"description": "XRadio XR80x"
+	},
+	"xradio-xr806": {
+		"parent": "xradio-xr80x",
+		"code": "xr806",
+		"description": "XRadio XR806",
+		"id": "0x2A9F8E6C",
+		"short_name": "XR806",
+		"package": "framework-xradio-xr806"
 	}
 }

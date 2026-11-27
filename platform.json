@@ -87,6 +87,20 @@
         }
       }
     },
+    "framework-xradio-xr806": {
+      "type": "framework",
+      "optional": true,
+      "version": "https://github.com/bavci1988/xr806-sdk#libretiny",
+      "toolchains": {
+        "any": "gccarmnoneeabi@~1.100301.0"
+      },
+      "libraries": {
+        "lwip": {
+          "2.2.0": "https://github.com/bavci1988/libretiny-lwip#2.2.0-xr806",
+          "default": "https://github.com/bavci1988/libretiny-lwip#2.2.0-xr806"
+        }
+      }
+    },
     "framework-arduino-api": {
       "type": "framework",
       "optional": true,

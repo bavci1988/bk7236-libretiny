@@ -19,6 +19,7 @@ typedef enum {
 	F_BK7251   = 0x6A82CC42, // Beken 7251/7252
 	F_BL60X	   = 0xDE1270B7, // Boufallo 602
 	F_LN882H   = 0xA38090A8, // Lightning LN882H
+	F_XR806	   = 0x2A9F8E6C, // XRadio XR806
 } lt_cpu_family_t;
 
 typedef enum {
@@ -54,4 +55,6 @@ typedef enum {
 	LN882HF = CPU_MODEL(F_LN882H, 0x00), // TODO / QFN24
 	LN882HK = CPU_MODEL(F_LN882H, 0x00), // TODO / QFN32
 	LN882HC = CPU_MODEL(F_LN882H, 0x00), // TODO / QFN40
+	// XRadio XR80x
+	XR806 = CPU_MODEL(F_XR806, 0x06), // one model, not read from the eFuse
 } lt_cpu_model_t;
