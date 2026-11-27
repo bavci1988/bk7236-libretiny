@@ -45,12 +45,13 @@ void __wrap_free(void *ptr) {
 }
 
 // Mind the 'reent' parameter - do NOT define these as linker aliases!
+// Weak, so that an SDK whose heap code calls them back (e.g. from ROM) can provide its own.
 
-void *__wrap__malloc_r(void *reent, size_t size) {
+__attribute__((weak)) void *__wrap__malloc_r(void *reent, size_t size) {
 	return pvPortMalloc(size);
 }
 
-void *__wrap__calloc_r(void *reent, size_t num, size_t size) {
+__attribute__((weak)) void *__wrap__calloc_r(void *reent, size_t num, size_t size) {
 	void *ptr;
 	if (num == 0 || size == 0)
 		num = size = 1;
@@ -60,7 +61,7 @@ void *__wrap__calloc_r(void *reent, size_t num, size_t size) {
 	return ptr;
 }
 
-void *__wrap__realloc_r(void *reent, void *ptr, size_t new_size) {
+__attribute__((weak)) void *__wrap__realloc_r(void *reent, void *ptr, size_t new_size) {
 #if LT_REMALLOC
 	void *nptr = pvPortMalloc(new_size);
 	if (nptr) {
@@ -73,7 +74,7 @@ void *__wrap__realloc_r(void *reent, void *ptr, size_t new_size) {
 #endif
 }
 
-void __wrap__free_r(void *reent, void *ptr) {
+__attribute__((weak)) void __wrap__free_r(void *reent, void *ptr) {
 	vPortFree(ptr);
 }
 
