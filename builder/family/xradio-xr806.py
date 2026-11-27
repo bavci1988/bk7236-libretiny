@@ -329,6 +329,11 @@ for src, dst in [
 image_ota = "${BUILD_DIR}/image_ota.${FLASH_DOWNLOAD_OFFSET}.bin"
 image_boot = "${BUILD_DIR}/image_boot.${FLASH_BOOT_OFFSET}.bin"
 image_app = "${BUILD_DIR}/image_app.${FLASH_APP_OFFSET}.bin"
+# Empty OTA config (FDCM): a wired flash then boots the new app, whatever the previous
+# firmware (e.g. the vendor's) left in this sector, and OTA updates can follow
+image_ota_cfg = env.subst("${BUILD_DIR}/image_ota_cfg.${FLASH_OTA_CFG_OFFSET}.bin")
+with open(image_ota_cfg, "wb") as f:
+    f.write(b"\xff" * int(env.subst("${FLASH_OTA_CFG_LENGTH}"), 0))
 env.Replace(
     # linker command
     LINK='${LTCHIPTOOL} link2bin ${BOARD_JSON} "" ""',
@@ -339,5 +344,6 @@ env.Replace(
         # binary images for flasher
         f"{image_boot}=flasher:boot",
         f"{image_app}=flasher:app",
+        f"{image_ota_cfg}=flasher:ota_cfg",
     ],
 )
